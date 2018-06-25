@@ -7,8 +7,17 @@ pragma solidity ^0.4.2;
 
 
 contract RockPaperScissors {
+    uint8 constant rock = 1;
+    uint8 constant paper = 2;
+    uint8 constant scissors = 3;
+
+    struct CommitChoice {
+        bytes32 commitment;
+        uint8 choice;        
+    }
+
     uint256 public bet;
-    mapping(address => bytes32) public commitments;
+    mapping(address => CommitChoice) public players;    
     uint256 totalCommitments = 0;
     // TODO: look at all the access modifiers for all members and functions
     // TODO: what are the consequences?
@@ -36,7 +45,6 @@ contract RockPaperScissors {
     // should bet the same amount? no, allow any amount.
 
     // TODO: go through and write explicit 'stored' and 'memory' everywhere
-
     function commit(bytes32 commitment) payable public {
         require(msg.value >= bet);
         require(totalCommitments < 2);
@@ -45,22 +53,23 @@ contract RockPaperScissors {
             msg.sender.transfer(msg.value - bet);
         }
 
-        // store the commitment
-        addCommitment(commitment); 
-    }
-
-    /**
-     * Add a commitment to the mapping.
-     * Keeps a track of the number of the commitments in the mapping.
-     */
-    // TODO: make this a pure and public function, so that it can be tested.
-    function addCommitment(bytes32 commitment) private {
-        commitments[msg.sender] = commitment;
+        //ensure that only this sender can reveal this commitment
+        bytes32 hashedCommitment = keccak256(abi.encodePacked(msg.sender, commitment));
+        // store the commitment, and the record of the commitment        
+        players[msg.sender] = CommitChoice(hashedCommitment, 0);
         totalCommitments = totalCommitments + 1;
     }
 
-    function reveal(uint8 choice, bytes32 blind) public {
+    event Reveal(address sender, uint8 choice, bytes32 blind);
 
+    function reveal(uint8 choice, bytes32 blindingFactor) public {
+        emit Reveal(msg.sender, choice, blindingFactor);
+        require(choice == rock || choice == paper || choice == scissors);
+        CommitChoice storage commitChoice = players[msg.sender]; 
+        //check the hash
+        require(keccak256(abi.encodePacked(msg.sender, abi.encodePacked(choice, blindingFactor))) == commitChoice.commitment);
+        // update if correct
+        commitChoice.choice = choice;
     }
 
     function distribute() public {
