@@ -67,13 +67,13 @@ contract RockPaperScissors {
         require(choice == rock || choice == paper || choice == scissors);
         CommitChoice storage commitChoice = players[msg.sender]; 
         //check the hash
-        require(keccak256(abi.encodePacked(msg.sender, abi.encodePacked(choice, blindingFactor))) == commitChoice.commitment);
+        require(keccak256(abi.encodePacked(msg.sender, keccak256(abi.encodePacked(choice, blindingFactor)))) == commitChoice.commitment);
         // update if correct
         commitChoice.choice = choice;
     }
 
     function distribute() public {
-
+        
     }
 
     // concerns - assymetry in setting timeout

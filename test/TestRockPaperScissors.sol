@@ -15,11 +15,13 @@ contract ExecutionProxy {
     }
 
     event Fallback(address sender, bytes data, uint256 value);
+    event FallbackSetData(bytes data, uint256 value);
 
     function() payable public {
         emit Fallback(msg.sender, msg.data, msg.value);
         data = msg.data;
         value = msg.value;
+        emit FallbackSetData(data, value);
     }
 
     function execute() public returns (bool) {
@@ -81,7 +83,7 @@ contract TestRockPaperScissors {
         uint256 balanceAfter = address(rps).balance;
 
         Assert.equal(balanceAfter - balanceBefore, commitAmount, "Balance not increased by commit amount.");
-        Assert.equal(address(this).balance, 1 ether - commitAmount, "Sender acount did not decrease by bet amount.");
+        Assert.equal(address(this).balance, initialBalance - commitAmount, "Sender acount did not decrease by bet amount.");
     }
 
     function testCommitIncreasesBalanceOnlyByBetAmount() public {
@@ -138,6 +140,7 @@ contract TestRockPaperScissors {
         (commitment2, choice2) = rps.players(executionProxy); 
 
         Assert.isTrue(result, "Execution proxy commit did not succeed.");
+
         Assert.notEqual(address(executionProxy), address(this), "Execution proxy address is the same as 'this' address");
         Assert.equal(commitment1, keccak256(abi.encodePacked(this, commitmentRock)), "Commit does not store first commitment.");
         Assert.equal(commitment2, keccak256(abi.encodePacked(executionProxy, commitmentPaper)), "Commit does not store second commitment.");
@@ -283,16 +286,7 @@ contract TestRockPaperScissors {
         Assert.equal(uint(choice3), uint(rock), "Choice not correctly updated to 'rock'.");
     }
 
-    function testProxyReveal() public {
-        RockPaperScissors rps = new RockPaperScissors(commitAmount);
-        ExecutionProxy proxy = new ExecutionProxy(rps);
-        RockPaperScissors(proxy).reveal(rock, rand1);
-        
-        bool result1 = proxy.execute();
-        Assert.isFalse(result1, "Player 2 allowed to reveal player 1.");
-    }
-    
-    function testPlayerCannotRevealOtherPlayer() public {
+    function testRevealPlayerCannotRevealOtherPlayer() public {
         RockPaperScissors rps = new RockPaperScissors(commitAmount);
         ExecutionProxy player1;
         ExecutionProxy player2;
@@ -306,6 +300,18 @@ contract TestRockPaperScissors {
         (commitment, choice) = rps.players(player1);
         Assert.equal(uint(choice), uint(0), "player 2 allowed to update choice of player 1.");
     }
+
+    function testDistributePaperBeatsRock() public {}
+    function testDistributeRockBeatsScissors() public {}
+    function testDistributeScissorsBeatsPaper() public {}
+    function testDistributeRockDrawsWithRock() public {}
+    function testDistributePaperDrawsWithPaper() public {}
+    function testDistributeScissorsDrawWithScissors() public {}
+    function testDistributeOnlyOneChoiceRevealedWins() public {}
+    function testDistributeNoRevealsIsADraw() public {}
+    function testDistributeRevertsWhenContractCantReceiveWinnings() public {}
+
+    
 
 
 
