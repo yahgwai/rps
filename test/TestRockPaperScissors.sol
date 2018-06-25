@@ -117,7 +117,7 @@ contract TestRockPaperScissors {
         bool result = executionProxy.execute();
 
         Assert.isFalse(result, "Third commit did not throw.");
-        Assert.isEqual(address(executionProxy).balance, commitAmount, "Not all of balance returned after fault.")
+        Assert.isEqual(address(executionProxy).balance, commitAmount, "Not all of balance returned after fault.");
     }
 
     function testCommitRequiresSenderBetGreaterThanOrEqualContractBet() public {
@@ -128,7 +128,7 @@ contract TestRockPaperScissors {
         bool result = executionProxy.execute();
 
         Assert.isFalse(result, "Commit amount less than contact bet amount did not throw.");
-        Assert.isEqual(address(executionProxy).balance, commitAmount - 1, "Not all of balance returned after fault.")
+        Assert.isEqual(address(executionProxy).balance, commitAmount - 1, "Not all of balance returned after fault.");
     }
     
     // reveal
