@@ -7,17 +7,33 @@ pragma solidity ^0.4.2;
 
 
 contract RockPaperScissors {
-    uint8 constant rock = 1;
-    uint8 constant paper = 2;
-    uint8 constant scissors = 3;
+    uint8 constant rock = 0x01;
+    uint8 constant paper = 0x02;
+    uint8 constant scissors = 0x03;
+
+    uint8 constant draw = 0x00;
+    uint8 constant player1Wins = 0x01;
+    uint8 constant player1WinsPlayer2Forfeits = 0x02;
+    uint8 constant player2Wins = 0x03;
+    uint8 constant player2WinsPlayer1Forfeits = 0x04;
+
+    uint8[4][4] winMatrix = [
+        [ draw, player2WinsPlayer1Forfeits, player2WinsPlayer1Forfeits, player2WinsPlayer1Forfeits ],
+        [ player1WinsPlayer2Forfeits, draw, player1Wins, player2Wins],
+        [ player1WinsPlayer2Forfeits, player2Wins, draw, player1Wins],
+        [ player1WinsPlayer2Forfeits, player1Wins, player2Wins, draw]
+    ];
 
     struct CommitChoice {
+        address playerAddress;
         bytes32 commitment;
         uint8 choice;        
     }
 
+    CommitChoice[2] public players;
+
     uint256 public bet;
-    mapping(address => CommitChoice) public players;    
+    //mapping(address => CommitChoice) public players;    
     uint256 totalCommitments = 0;
     // TODO: look at all the access modifiers for all members and functions
     // TODO: what are the consequences?
@@ -47,32 +63,41 @@ contract RockPaperScissors {
     // TODO: go through and write explicit 'stored' and 'memory' everywhere
     function commit(bytes32 commitment) payable public {
         require(msg.value >= bet);
-        require(totalCommitments < 2);
+        // player 1 has commited then 
+        require(players[1].commitment == 0);
         // return any excess
         if(msg.value > bet) {
             msg.sender.transfer(msg.value - bet);
         }
 
-        //ensure that only this sender can reveal this commitment
-        bytes32 hashedCommitment = keccak256(abi.encodePacked(msg.sender, commitment));
+        // ensure that only this sender can reveal this commitment
+        bytes32 hashedCommitment = commitment;
+        // choose the player
+        uint8 playerIndex;
+        if(players[0].commitment == 0) playerIndex = 0;
+        else playerIndex = 1;
+        
         // store the commitment, and the record of the commitment        
-        players[msg.sender] = CommitChoice(hashedCommitment, 0);
-        totalCommitments = totalCommitments + 1;
+        players[playerIndex] = CommitChoice(msg.sender, hashedCommitment, 0);
     }
 
-    event Reveal(address sender, uint8 choice, bytes32 blind);
-
     function reveal(uint8 choice, bytes32 blindingFactor) public {
-        emit Reveal(msg.sender, choice, blindingFactor);
         require(choice == rock || choice == paper || choice == scissors);
-        CommitChoice storage commitChoice = players[msg.sender]; 
-        //check the hash
-        require(keccak256(abi.encodePacked(msg.sender, keccak256(abi.encodePacked(choice, blindingFactor)))) == commitChoice.commitment);
+        // find the player index
+        uint8 playerIndex;
+        if(players[0].playerAddress == msg.sender) playerIndex = 0;
+        else if (players[1].playerAddress == msg.sender) playerIndex = 1;
+        else revert();
+        // find thir data
+        CommitChoice storage commitChoice = players[playerIndex]; 
+        // check the hash, we have a hash of sender, choice, blind so that players cannot learn anything from a committment
+        // if it were just choice, blind the other player could view this an submit ti themselves to reliably achieve a draw
+        require(keccak256(abi.encodePacked(msg.sender, choice, blindingFactor)) == commitChoice.commitment);
         // update if correct
         commitChoice.choice = choice;
     }
 
-    function distribute() public {
+    function distribute() view public {
         
     }
 
