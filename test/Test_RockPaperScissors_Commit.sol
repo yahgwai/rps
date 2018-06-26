@@ -3,43 +3,8 @@ pragma solidity ^0.4.2;
 import "truffle/Assert.sol";
 import "truffle/DeployedAddresses.sol";
 import "../contracts/RockPaperScissors.sol";
-
-// adapted from https://truffleframework.com/tutorials/testing-for-throws-in-solidity-tests
-contract ExecutionProxy {
-    address public target;
-    bytes data;
-    uint256 value;
-
-    constructor(address _target) public {
-        target = _target;
-    }
-
-    event Fallback(address sender, bytes data, uint256 value);
-    event FallbackSetData(bytes data, uint256 value);
-
-    function() payable public {
-        emit Fallback(msg.sender, msg.data, msg.value);
-        data = msg.data;
-        value = msg.value;
-        emit FallbackSetData(data, value);
-    }
-
-    function execute() public returns (bool) {
-        return target.call.value(value)(data);
-    }
-}
-
-contract RpsProxy {
-    RockPaperScissors public rps;
-
-    constructor(RockPaperScissors _rps) public {
-        rps = _rps;
-    }
-
-    function commit(bytes32 commitment) payable public {
-        this.rps().commit.value(msg.value)(commitment);
-    }
-}
+import "./RpsProxy.sol";
+import "./ExecutionProxy.sol";
 
 contract Test_RockPaperScissors_Commit {
     uint256 public initialBalance = 10 ether;

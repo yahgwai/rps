@@ -45,6 +45,8 @@ contract RockPaperScissors {
     // TODO: look at all the access modifiers for all members and functions
     // TODO: what are the consequences?
 
+    // TODO: checkout all the integer operations for possible overflows
+
     event ReceiveAmount(uint256 amount);
 
     constructor(uint256 _bet, uint256 _deposit, uint256 _revealSpan) public {
@@ -73,7 +75,7 @@ contract RockPaperScissors {
     function commit(bytes32 commitment) payable public {
         //TODO: possible overflow
         require(msg.value >= (bet + deposit));
-        // player 1 has commited then 
+        // if player 1 has commited then we allow no more commitment
         require(players[1].commitment == bytes32(0x0));
         // return any excess
         if(msg.value > (bet + deposit)) {
@@ -81,24 +83,24 @@ contract RockPaperScissors {
             msg.sender.transfer(msg.value - (bet + deposit));
         }
 
-        // ensure that only this sender can reveal this commitment
-        bytes32 hashedCommitment = commitment;
         // choose the player
         uint8 playerIndex;
         if(players[0].commitment == bytes32(0x0)) playerIndex = 0;
         else playerIndex = 1;
         
         // store the commitment, and the record of the commitment        
-        players[playerIndex] = CommitChoice(msg.sender, hashedCommitment, 0);
+        players[playerIndex] = CommitChoice(msg.sender, commitment, 0);
     }
 
     function reveal(uint8 choice, bytes32 blindingFactor) public {
         require(choice == rock || choice == paper || choice == scissors);
+        
         // find the player index
         uint8 playerIndex;
         if(players[0].playerAddress == msg.sender) playerIndex = 0;
         else if (players[1].playerAddress == msg.sender) playerIndex = 1;
         else revert();
+
         // find thir data
         CommitChoice storage commitChoice = players[playerIndex]; 
         // check the hash, we have a hash of sender, choice, blind so that players cannot learn anything from a committment
@@ -107,7 +109,8 @@ contract RockPaperScissors {
         // update if correct
         commitChoice.choice = choice;
         // if this is the first reveal we set the deadline for the second one
-        if(playerIndex == 0) revealDeadline = block.number + revealSpan;
+        // TODO: possible overflow
+        if(revealDeadline == 0) revealDeadline = block.number + revealSpan;
     }
 
     function distribute() view public {
