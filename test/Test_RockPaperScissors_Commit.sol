@@ -43,9 +43,11 @@ contract RpsProxy {
 
 contract Test_RockPaperScissors_Commit {
     uint256 public initialBalance = 10 ether;
-    uint256 commitAmount = 100;
-    uint256 commitAmountGreater = 150;
     uint256 depositAmount = 25;
+    uint256 betAmount = 100;
+    uint256 commitAmount = depositAmount + betAmount;
+    uint256 commitAmountGreater = commitAmount + 13;
+    
     uint256 revealSpan = 10;
 
     // TODO: test greater deposit amounts
@@ -64,7 +66,7 @@ contract Test_RockPaperScissors_Commit {
     }
     
     function testCommitIncreasesBalance() public {
-        RockPaperScissors rps = new RockPaperScissors(commitAmount, depositAmount, revealSpan);
+        RockPaperScissors rps = new RockPaperScissors(betAmount, depositAmount, revealSpan);
         uint256 balanceBefore = address(rps).balance;
         rps.commit.value(commitAmount)(commitmentRock(this));
         uint256 balanceAfter = address(rps).balance;
@@ -74,7 +76,7 @@ contract Test_RockPaperScissors_Commit {
     }
 
     function testCommitIncreasesBalanceOnlyByBetAmount() public {
-        RockPaperScissors rps = new RockPaperScissors(commitAmount, depositAmount, revealSpan);
+        RockPaperScissors rps = new RockPaperScissors(betAmount, depositAmount, revealSpan);
         // we need the rps proxy as the execution proxy already implements the 
         // fallback function with storage. Storage would cost too much gas than
         // that supplied in transfer so we would error here with that fallback.
@@ -89,7 +91,7 @@ contract Test_RockPaperScissors_Commit {
     }
 
     function testCommitReturnsAllWhenCallingFallbackErrors() public {
-        RockPaperScissors rps = new RockPaperScissors(commitAmount, depositAmount, revealSpan);
+        RockPaperScissors rps = new RockPaperScissors(betAmount, depositAmount, revealSpan);
         ExecutionProxy executionProxy = new ExecutionProxy(rps);
         
         rps.commit.value(commitAmount)(commitmentRock(executionProxy));
@@ -102,7 +104,7 @@ contract Test_RockPaperScissors_Commit {
 
 
     function testCommitStoresSenderAndCommitmentHashedWithSender() public {
-        RockPaperScissors rps = new RockPaperScissors(commitAmount, depositAmount, revealSpan);
+        RockPaperScissors rps = new RockPaperScissors(betAmount, depositAmount, revealSpan);
         rps.commit.value(commitAmount)(commitmentRock(this));
         bytes32 commitment;
         uint8 choice;
@@ -112,7 +114,7 @@ contract Test_RockPaperScissors_Commit {
     }
 
     function testCommitStoresMultipleSendersAndCommitments() public {
-        RockPaperScissors rps = new RockPaperScissors(commitAmount, depositAmount, revealSpan);
+        RockPaperScissors rps = new RockPaperScissors(betAmount, depositAmount, revealSpan);
         ExecutionProxy executionProxy = new ExecutionProxy(rps);
         
         rps.commit.value(commitAmount)(commitmentRock(this));
@@ -138,7 +140,7 @@ contract Test_RockPaperScissors_Commit {
     }
 
     function testCommitRequiresNoMoreThanTwoSenders() public {
-        RockPaperScissors rps = new RockPaperScissors(commitAmount, depositAmount, revealSpan);
+        RockPaperScissors rps = new RockPaperScissors(betAmount, depositAmount, revealSpan);
         ExecutionProxy executionProxy = new ExecutionProxy(rps);
         rps.commit.value(commitAmount)(commitmentRock(this));
         rps.commit.value(commitAmount)(commitmentRock(this));
@@ -152,7 +154,7 @@ contract Test_RockPaperScissors_Commit {
     }
 
     function testCommitRequiresSenderBetGreaterThanOrEqualContractBet() public {
-        RockPaperScissors rps = new RockPaperScissors(commitAmount, depositAmount, revealSpan);
+        RockPaperScissors rps = new RockPaperScissors(betAmount, depositAmount, revealSpan);
         ExecutionProxy executionProxy = new ExecutionProxy(rps);
 
         RockPaperScissors(executionProxy).commit.value(commitAmount - 1)(commitmentPaper(executionProxy));

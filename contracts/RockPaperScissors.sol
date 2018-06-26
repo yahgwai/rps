@@ -2,8 +2,12 @@ pragma solidity ^0.4.2;
 
 // ISSUES
 
-// 1. Player cannot currently avoid having their game hijacked by a 3rd party
-// 2. Tests are all made from a single account, when really we should be testing from multiple accounts
+// 1. Player cannot currently avoid having their game hijacked by a 3rd party, 
+//      they can do this by jumping in straight after another player commits, then revealing to start the timout
+//      after the reveal the user must play
+// 2. By setting the deadline in the reveal we give the players the option to
+//      withdraw before one reveals - this shouldnt be allowed, it should be moved into the commit
+
 
 
 contract RockPaperScissors {
@@ -35,6 +39,7 @@ contract RockPaperScissors {
     uint256 public bet;
     uint256 public deposit;
     uint256 public revealSpan;
+    uint256 public revealDeadline;
 
     
     // TODO: look at all the access modifiers for all members and functions
@@ -63,16 +68,17 @@ contract RockPaperScissors {
 
     // no re-entrancy
     // no stack overflow resulting in uneven distribution
-    // should bet the same amount? no, allow any amount.
 
     // TODO: go through and write explicit 'stored' and 'memory' everywhere
     function commit(bytes32 commitment) payable public {
-        require(msg.value >= bet);
+        //TODO: possible overflow
+        require(msg.value >= (bet + deposit));
         // player 1 has commited then 
         require(players[1].commitment == bytes32(0x0));
         // return any excess
-        if(msg.value > bet) {
-            msg.sender.transfer(msg.value - bet);
+        if(msg.value > (bet + deposit)) {
+            //TODO: possible overflow
+            msg.sender.transfer(msg.value - (bet + deposit));
         }
 
         // ensure that only this sender can reveal this commitment
@@ -100,6 +106,8 @@ contract RockPaperScissors {
         require(keccak256(abi.encodePacked(msg.sender, choice, blindingFactor)) == commitChoice.commitment);
         // update if correct
         commitChoice.choice = choice;
+        // if this is the first reveal we set the deadline for the second one
+        if(playerIndex == 0) revealDeadline = block.number + revealSpan;
     }
 
     function distribute() view public {
