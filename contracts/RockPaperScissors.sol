@@ -9,17 +9,20 @@ pragma solidity ^0.4.2;
 //      withdraw before one reveals - this shouldnt be allowed, it should be moved into the commit
 
 
+// IMPROVMENTS:
+
+// 1. Allow second player to reveal without committing.
 
 contract RockPaperScissors {
-    uint8 constant rock = 0x01;
-    uint8 constant paper = 0x02;
-    uint8 constant scissors = 0x03;
+    uint8 constant rock = 0x1;
+    uint8 constant paper = 0x2;
+    uint8 constant scissors = 0x3;
 
-    uint8 constant draw = 0x00;
-    uint8 constant player1Wins = 0x01;
-    uint8 constant player1WinsPlayer2Forfeits = 0x02;
-    uint8 constant player2Wins = 0x03;
-    uint8 constant player2WinsPlayer1Forfeits = 0x04;
+    uint8 constant draw = 0x0;
+    uint8 constant player1Wins = 0x1;
+    uint8 constant player1WinsPlayer2Forfeits = 0x2;
+    uint8 constant player2Wins = 0x3;
+    uint8 constant player2WinsPlayer1Forfeits = 0x4;
 
     uint8[4][4] winMatrix = [
         [ draw, player2WinsPlayer1Forfeits, player2WinsPlayer1Forfeits, player2WinsPlayer1Forfeits ],
@@ -47,6 +50,10 @@ contract RockPaperScissors {
 
     // TODO: checkout all the integer operations for possible overflows
 
+    // TODO:
+    // check no re-entrancy
+    // check no stack overflow results in uneven distribution
+
     event ReceiveAmount(uint256 amount);
 
     constructor(uint256 _bet, uint256 _deposit, uint256 _revealSpan) public {
@@ -55,32 +62,18 @@ contract RockPaperScissors {
         // TODO: overflow
         revealSpan = _revealSpan;
     }
-    
-    // commit-reveal contract for playing rock paper scissors
-    
-    // commit a hash of your choice+random number
-    
-    // when both choices have been supplied, reveal by supplying a the choice+rand
-    // call to finalise to distribute the funds
-
-    // additional features:
-    // both players must reveal with a timeout,
-    // finalise cannot be called within this timeout? no, can be called whenever we have enough reveals
-    // if player does not reveal they loose a deposit
-
-    // no re-entrancy
-    // no stack overflow resulting in uneven distribution
 
     // TODO: go through and write explicit 'stored' and 'memory' everywhere
     function commit(bytes32 commitment) payable public {
         //TODO: possible overflow
-        require(msg.value >= (bet + deposit));
+        uint256 commitAmount = bet + deposit;
+        require(msg.value >= commitAmount);
         // if player 1 has commited then we allow no more commitment
         require(players[1].commitment == bytes32(0x0));
         // return any excess
-        if(msg.value > (bet + deposit)) {
+        if(msg.value > commitAmount) {
             //TODO: possible overflow
-            msg.sender.transfer(msg.value - (bet + deposit));
+            msg.sender.transfer(msg.value - commitAmount);
         }
 
         // choose the player

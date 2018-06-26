@@ -85,15 +85,14 @@ contract Test_RockPaperScissors_Reveal {
         Assert.isFalse(result, "Non player was allowed to reveal");
     }
 
-    // TODO: should we revert this? or should it just not matter since these are not in the matrix 
     function testRevealRevertsInvalidUpperChoice() public {
         RockPaperScissors rps = new RockPaperScissors(betAmount, depositAmount, revealSpan);
-        ExecutionProxy player1;
-        ExecutionProxy player2;
-        (player1, player2) = commitPlayers(rps);
-        //TODO:
-        //, keccak256(abi.encodePacked(uint8(4), rand1)), commitmentPaper);
-
+        ExecutionProxy player1 = new ExecutionProxy(rps);
+        ExecutionProxy player2 = new ExecutionProxy(rps);
+        RockPaperScissors(player1).commit.value(commitAmount)(keccak256(abi.encodePacked(player1, uint8(4), rand1)));
+        RockPaperScissors(player2).commit.value(commitAmount)(commitmentPaper(player2));
+        player1.execute();
+        player2.execute();
         RockPaperScissors(player1).reveal(4, rand1);
         bool result1 = player1.execute();
 
@@ -102,12 +101,12 @@ contract Test_RockPaperScissors_Reveal {
 
     function testRevealRevertsInvalidLowerChoice() public {
         RockPaperScissors rps = new RockPaperScissors(betAmount, depositAmount, revealSpan);
-        ExecutionProxy player1;
-        ExecutionProxy player2;
-        (player1, player2) = commitPlayers(rps);
-        //TODO:
-        // , keccak256(abi.encodePacked(uint8(0), rand1)), commitmentPaper);
-
+        ExecutionProxy player1 = new ExecutionProxy(rps);
+        ExecutionProxy player2 = new ExecutionProxy(rps);
+        RockPaperScissors(player1).commit.value(commitAmount)(keccak256(abi.encodePacked(player1, uint8(0), rand1)));
+        RockPaperScissors(player2).commit.value(commitAmount)(commitmentPaper(player2));
+        player1.execute();
+        player2.execute();
         RockPaperScissors(player1).reveal(0, rand1);
         bool result1 = player1.execute();
 
@@ -132,37 +131,4 @@ contract Test_RockPaperScissors_Reveal {
         (playerAddress, commitment, choice) = rps.players(0);
         Assert.equal(uint(choice), uint(0), "player 2 allowed to update choice of player 1.");
     }
-
-    // function testConstructorSetsRevealDeadlineSpan() public {}
-    // function testConstructorSetsDepositAmount() public {}
-
-    // function testCommitTestStoresDeposit() public {}
-
-    // function testRevealSuccessfulFirstRevealSetsRevealDeadline() public {}
-    // function testRevealSubsequentRevealsDoNotAdjustRevealDeadline() public {}
-    // function testRevealCanStillBeSuccessfullyCalledAfterDeadline() public {}
-    // function testRevealCannotBeCalledAfterDistribute() public {}
-
-    // function testDistributePaperBeatsRock() public {}
-    // function testDistributeRockBeatsScissors() public {}
-    // function testDistributeScissorsBeatsPaper() public {}
-    // function testDistributeRockDrawsWithRock() public {}
-    // function testDistributePaperDrawsWithPaper() public {}
-    // function testDistributeScissorsDrawWithScissors() public {}
-    // function testDistributeOnlyOneChoiceRevealedWinsAfterRevealDeadlineReached() public {}
-    // function testDistributeNoRevealsIsADraw() public {}
-    // function testDistributeRevertsWhenContractCantReceiveWinnings() public {}
-    // function testDistributeBurnsDepositIfSettleBlockIsReached() public {}
-    // function testDistributeWillAlwaysSettleWithTwoReveals() public {}
-    // function testDistributeWillNotSettleWhenLessThanTwoRevealsAndSettleBlockReached() public {}
-    // function testDistributeWillRevertIfDepositDistributionFails() public {}
-    // function testDistributeDepositAndWinningsDistributionCannotBeBlockedByRevertDuringDistributionToOtherParty() public {}
-    // function testDistributeResetsAllCountersAfterSuccess() public {}
-
-    // function testFullFlowCanOccurWithoutdeposit() public {}
-
-
-
-
-    //TODO: do we need to include the sender in the hash? why did they do it in the paper?
 }
