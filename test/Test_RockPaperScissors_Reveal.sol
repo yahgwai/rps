@@ -45,6 +45,8 @@ contract Test_RockPaperScissors_Reveal {
     uint256 public initialBalance = 10 ether;
     uint256 commitAmount = 100;
     uint256 commitAmountGreater = 150;
+    uint256 depositAmount = 25;
+    uint256 revealSpan = 10;
     uint8 rock = 1;
     uint8 paper = 2;
     uint8 scissors = 3;
@@ -73,7 +75,7 @@ contract Test_RockPaperScissors_Reveal {
     // TODO: test that commit correctly sets the address
 
     function testReveal() public {
-        RockPaperScissors rps = new RockPaperScissors(commitAmount);
+        RockPaperScissors rps = new RockPaperScissors(commitAmount, depositAmount, revealSpan);
         ExecutionProxy player1;
         ExecutionProxy player2;
         (player1, player2) = commitPlayers(rps);
@@ -104,7 +106,7 @@ contract Test_RockPaperScissors_Reveal {
     //TODO: maybe also consider checking that player 1 had nothing untoward occur to them
 
     function testRevealRevertsUnknownSender() public {
-        RockPaperScissors rps = new RockPaperScissors(commitAmount);
+        RockPaperScissors rps = new RockPaperScissors(commitAmount, depositAmount, revealSpan);
         ExecutionProxy player1;
         ExecutionProxy player2;
         (player1, player2) = commitPlayers(rps);
@@ -118,7 +120,7 @@ contract Test_RockPaperScissors_Reveal {
 
     // TODO: should we revert this? or should it just not matter since these are not in the matrix 
     function testRevealRevertsInvalidUpperChoice() public {
-        RockPaperScissors rps = new RockPaperScissors(commitAmount);
+        RockPaperScissors rps = new RockPaperScissors(commitAmount, depositAmount, revealSpan);
         ExecutionProxy player1;
         ExecutionProxy player2;
         (player1, player2) = commitPlayers(rps);
@@ -132,7 +134,7 @@ contract Test_RockPaperScissors_Reveal {
     }
 
     function testRevealRevertsInvalidLowerChoice() public {
-        RockPaperScissors rps = new RockPaperScissors(commitAmount);
+        RockPaperScissors rps = new RockPaperScissors(commitAmount, depositAmount, revealSpan);
         ExecutionProxy player1;
         ExecutionProxy player2;
         (player1, player2) = commitPlayers(rps);
@@ -149,7 +151,7 @@ contract Test_RockPaperScissors_Reveal {
     // //TODO: test that addresses have not changed
 
     function testRevealPlayerCannotRevealOtherPlayer() public {
-        RockPaperScissors rps = new RockPaperScissors(commitAmount);
+        RockPaperScissors rps = new RockPaperScissors(commitAmount, depositAmount, revealSpan);
         ExecutionProxy player1;
         ExecutionProxy player2;
         (player1, player2) = commitPlayers(rps);

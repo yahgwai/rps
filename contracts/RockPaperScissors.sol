@@ -33,15 +33,20 @@ contract RockPaperScissors {
     CommitChoice[2] public players;
 
     uint256 public bet;
-    //mapping(address => CommitChoice) public players;    
-    uint256 totalCommitments = 0;
+    uint256 public deposit;
+    uint256 public revealSpan;
+
+    
     // TODO: look at all the access modifiers for all members and functions
     // TODO: what are the consequences?
 
     event ReceiveAmount(uint256 amount);
 
-    constructor(uint256 betAmount) public {
-        bet = betAmount;
+    constructor(uint256 _bet, uint256 _deposit, uint256 _revealSpan) public {
+        bet = _bet;
+        deposit = _deposit;
+        // TODO: overflow
+        revealSpan = _revealSpan;
     }
     
     // commit-reveal contract for playing rock paper scissors
@@ -64,7 +69,7 @@ contract RockPaperScissors {
     function commit(bytes32 commitment) payable public {
         require(msg.value >= bet);
         // player 1 has commited then 
-        require(players[1].commitment == 0);
+        require(players[1].commitment == bytes32(0x0));
         // return any excess
         if(msg.value > bet) {
             msg.sender.transfer(msg.value - bet);
@@ -74,7 +79,7 @@ contract RockPaperScissors {
         bytes32 hashedCommitment = commitment;
         // choose the player
         uint8 playerIndex;
-        if(players[0].commitment == 0) playerIndex = 0;
+        if(players[0].commitment == bytes32(0x0)) playerIndex = 0;
         else playerIndex = 1;
         
         // store the commitment, and the record of the commitment        
