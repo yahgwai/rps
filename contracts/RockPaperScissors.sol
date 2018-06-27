@@ -20,6 +20,8 @@ pragma solidity ^0.4.2;
 // check no re-entrancy
 // check no stack overflow results in uneven distribution
 
+// TODO: consider event logging
+
 
 // IMPROVMENTS:
 
