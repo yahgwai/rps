@@ -10,6 +10,16 @@ contract RpsProxy {
     }
 
     function commit(bytes32 commitment) payable public {
-        this.rps().commit.value(msg.value)(commitment);
+        rps.commit.value(msg.value)(commitment);
     }
+
+    function reveal(uint8 choice, bytes32 blind) public {
+        rps.reveal(choice, blind);
+    }
+
+    function distribute() public {
+        rps.distribute();
+    }
+
+    function() payable public {}
 }

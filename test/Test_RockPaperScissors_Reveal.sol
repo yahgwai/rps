@@ -20,10 +20,10 @@ contract Test_RockPaperScissors_Reveal {
     bytes32 rand1 = "abc";
     bytes32 rand2 = "123";
 
-    function commitmentRock(address sender) private returns (bytes32) {
+    function commitmentRock(address sender) view private returns (bytes32) {
         return keccak256(abi.encodePacked(sender, rock, rand1));
     }
-    function commitmentPaper(address sender) private returns (bytes32) {
+    function commitmentPaper(address sender) view private returns (bytes32) {
         return keccak256(abi.encodePacked(sender, paper, rand2));
     }
     
