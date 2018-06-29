@@ -4,12 +4,12 @@ pragma solidity ^0.4.24;
 
 // 1. Player cannot currently avoid having their game hijacked by a 3rd party, 
 //      they can do this by jumping in straight after another player commits, then revealing to start the timout
-//      after the reveal the user must play
+//      after the reveal the user must play. We can avoid this by having a 'register' phase where no commits money.
 // 2. By setting the deadline in the reveal we give the players the option to
 //      withdraw before one reveals - this shouldnt be allowed, it should be moved into the commit
 
 // concerns - assymetry in setting timeout
-    // concerns - timeout not greatly reduced by addition deposit
+// concerns - timeout possibly not greatly reduced by addition of deposit
 
 // TODO: look at all the access modifiers for all members and functions
 // TODO: what are the consequences?
@@ -40,7 +40,7 @@ contract RockPaperScissors {
         uint8 choice;        
     }
 
-    //TODO: decide whether to keep deposits in the state.
+    //TODO: decide whether to keep burn deposits in the state.
     // payout[0] - burn player 0 deposit
     // payout[1] - pay player 0 deposit
     // payout[2] - pay player 0 back their bet
