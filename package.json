@@ -7,6 +7,8 @@
     "test": "test"
   },
   "scripts": {
+    "compile": "truffle compile",
+    "start-evm": "truffle develop",
     "test": "truffle test",
     "start": "http-server"
   },
@@ -21,6 +23,7 @@
   },
   "homepage": "https://github.com/yahgwai/rps#readme",
   "dependencies": {
-    "http-server": "^0.11.1"
+    "http-server": "^0.11.1",
+    "truffle": "^4.1.13"
   }
 }
