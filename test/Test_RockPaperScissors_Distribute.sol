@@ -160,6 +160,9 @@ contract Test_RockPaperScissors_Distribute {
         Assert.equal(address(player0).balance, commitAmount, "Player 1 did not receive back commit amount.");
     }
 
+    //TODO: the above tests didnt seem to catch that delete array does not work?
+    //TODO: we defo need to test the remaining state of the contract
+
     // function testDistributeRockDrawsWithRock() public {}
     // function testDistributePaperDrawsWithPaper() public {}
     // function testDistributeScissorsDrawWithScissors() public {}

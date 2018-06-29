@@ -1,4 +1,4 @@
-pragma solidity ^0.4.2;
+pragma solidity ^0.4.24;
 
 // ISSUES
 
@@ -28,11 +28,12 @@ pragma solidity ^0.4.2;
 // 1. Allow second player to reveal without committing.
 // 2. Allow re-use of the contract? Or allow a self destruct to occur?
 // 3. Choose where to send lost deposits.
+// 4. Allow a player to forfeit for a cheaper gas cost?
 
 contract RockPaperScissors {
-    uint8 constant rock = 0x1;
-    uint8 constant paper = 0x2;
-    uint8 constant scissors = 0x3;
+    uint8 private constant rock = 0x1;
+    uint8 private constant paper = 0x2;
+    uint8 private constant scissors = 0x3;
     struct CommitChoice {
         address playerAddress;
         bytes32 commitment;
@@ -67,7 +68,7 @@ contract RockPaperScissors {
     uint256 public deposit;
     uint256 public revealSpan;
 
-    // state args
+    // state vars
     CommitChoice[2] public players;
     uint256 public revealDeadline;
     uint8 public distributedWinnings;
@@ -79,7 +80,7 @@ contract RockPaperScissors {
     }
 
     // TODO: go through and write explicit 'stored' and 'memory' everywhere
-    function commit(bytes32 commitment) payable public {
+    function commit(bytes32 commitment) payable public {        
         //TODO: possible overflow
         uint256 commitAmount = bet + deposit;
         require(msg.value >= commitAmount);
@@ -95,7 +96,7 @@ contract RockPaperScissors {
         // store the commitment, and the record of the commitment        
         players[playerIndex] = CommitChoice(msg.sender, commitment, 0);
     }
-
+    
     function reveal(uint8 choice, bytes32 blindingFactor) public {
         // valid choices
         require(choice == rock || choice == paper || choice == scissors);
@@ -109,9 +110,11 @@ contract RockPaperScissors {
 
         // find the player data
         CommitChoice storage commitChoice = players[playerIndex]; 
+
         // check the hash, we have a hash of sender, choice, blind so that players cannot learn anything from a committment
         // if it were just choice, blind the other player could view this an submit ti themselves to reliably achieve a draw
         require(keccak256(abi.encodePacked(msg.sender, choice, blindingFactor)) == commitChoice.commitment);
+        
         // update if correct
         commitChoice.choice = choice;
         // if this is the first reveal we set the deadline for the second one
@@ -119,11 +122,14 @@ contract RockPaperScissors {
         if(revealDeadline == 0) revealDeadline = block.number + revealSpan;
     }
 
+    event Payout(address player, uint256 amount);
+
     function distribute() public {
         // to distribute we need:
         // a) to be past the deadline OR b) both players have revealed
         require(revealDeadline < block.number || (players[0].choice != 0 && players[1].choice != 0));        
 
+        
         // find the payout
         uint8 payout = winMatrix[players[1].choice][players[0].choice];
 
@@ -140,16 +146,37 @@ contract RockPaperScissors {
         bool player1Success = players[1].playerAddress.send(player1Payout);
 
         // mask the player0 payouts and add them to any existing records
-        if(player0Success == true) distributedWinnings = distributedWinnings | (payout & 0xF0);
-        if(player1Success == true) distributedWinnings = distributedWinnings | (payout & 0x0F);
+        if(player0Success == true) {
+            emit Payout(players[0].playerAddress, player0Payout);
+            distributedWinnings = distributedWinnings | (payout & 0xF0);
+        }
+        if(player1Success == true) {
+            emit Payout(players[1].playerAddress, player1Payout);
+            distributedWinnings = distributedWinnings | (payout & 0x0F);
+        }
+
+        
 
         // if we have distributed the full payout, then lets zero the state
         //TODO: this won't work unless we update distributed winnings to a take into account the deposit bits
-        if((remainingPayout ^ distributedWinnings) == 0) {
-            revealDeadline = 0;
-            distributedWinnings = 0;
-            delete players;            
-        }
+        // if((remainingPayout ^ distributedWinnings) == 0) {
+        //     revealDeadline = 0;
+        //     distributedWinnings = 0;
+
+        //     players[0].playerAddress = 0;
+            
+        //     players[0].choice = 0;
+
+        // TODO: this line did not work?
+        //     players[0].commitment = 0x00;
+
+        // TODO: also delete players[0] does not
+            
+
+        //     players[1].playerAddress = 0;
+        //     players[1].choice = 0;
+        //     players[1].commitment = bytes32(0);
+        // }
     }
 
     function getBit(uint8 bits, uint8 index) pure private returns(uint8) {

@@ -1,0 +1,118 @@
+<html>
+
+<head>
+
+    <script>
+        var RPS_ABI;
+        var RPS_BYTECODE;
+        // load the contract definitions
+        fetch("./../build/contracts/RockPaperScissors.json").
+            then((response) => {
+                data = response.json().then(
+                    json => {
+                        RPS_ABI = json.abi,
+                            RPS_BYTECODE = json.bytecode
+                    })
+
+            })
+
+    </script>
+    <script src="web3.min.js"></script>
+    <script src="index.js"></script>
+</head>
+
+<body>
+    <div>
+        <h1>Rock-Paper-Scissors</h1>
+
+        <div>
+            <h4>Begin by deploying a Rock-Paper-Scissors contract</h4>
+            <label for="address-selector">Select address</label>
+            <select id="address-selector">
+                <option></option>
+            </select>
+            <div>
+                <button id="deploy-contract">Deploy new RPS</button>
+                <div id="deployed-contract-address"></div>
+            </div>
+        </div>
+
+        <div id="game-container" hidden="true">
+            <h2>Time to play!</h2>
+            <div>
+                <label for="player-selector">Select player:</label>
+                <select id="player-selector"></select>
+
+                <div id="commit-container">
+                    <h4>Commit to contract</h4>
+                    <label for="commitment-choice">Make a choice:</label>
+                    <select id="commitment-choice">
+                        <option disabled selected value="-1"> -- select an option -- </option>
+                        <option value="rock">Rock</option>
+                        <option value="paper">Paper</option>
+                        <option value="scissors">Scissors</option>
+                    </select>
+                    <div>
+                        <label for="commit-random-number">Select a random string, <b>remember it!</b>:</label>
+                        <input id="commit-random-number" type="text">
+                    </div>
+
+                    <button id="commit">Commit</button>
+                    <ul id="commitments-made"></ul>
+                </div>
+
+                <div id="reveal-container">
+                    <h4>Reveal to contract</h4>
+                    <label for="reveal-choice">Select your original choice: </label>
+                    <select id="reveal-choice">
+                        <option disabled selected value="-1"> -- select an option -- </option>
+                        <option value="rock">Rock</option>
+                        <option value="paper">Paper</option>
+                        <option value="scissors">Scissors</option>
+                    </select>
+
+                    <div>
+                        <label for="reveal-random-number">Input the random string you remembered.</label>
+                        <input id="reveal-random-number" type="text">
+                    </div>
+
+                    <button id="reveal">Reveal</button>
+                    <ul id="reveals-made"></ul>
+                </div>
+
+                <div id="distribute-container">
+                    <h4>Calculate the result and distribute the winnings</h4>
+                    <button id="distribute">Calculate and distribute</button>
+                    <ul id="distribute-results"></ul>
+                </div>
+            </div>
+        </div>
+
+
+        <!--
+                NORMAL FLOW
+                1. Deploy contract + choose params
+                2. Player 0 commit + send value
+                3. Player 1 commit + send value
+                4. Player 0 reveal
+                5. Player 1 reveal
+                6. Distribute, check balances
+            -->
+
+        <!--
+                FUNCTIONALITY
+                1. Deploy button - can be hit any time? yes - but contract is always shown at the top of the page
+                2. Commit section, can be called at any time
+                    a) Has a drop down + commit button
+                3. Reveal section, can be called at any time
+                    a) Has a drop down + reveal button
+                4. Distribute button
+
+
+                Nice- show live state of the contract any time
+            -->
+
+    </div>
+</body>
+
+</html>

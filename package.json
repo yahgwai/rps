@@ -1,0 +1,26 @@
+{
+  "name": "rps",
+  "version": "1.0.0",
+  "description": "Rock Paper Scissors game with commit-reveal flow",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "truffle test",
+    "start": "http-server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yahgwai/rps.git"
+  },
+  "author": "Chris Buckland",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yahgwai/rps/issues"
+  },
+  "homepage": "https://github.com/yahgwai/rps#readme",
+  "dependencies": {
+    "http-server": "^0.11.1"
+  }
+}
