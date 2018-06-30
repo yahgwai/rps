@@ -68,7 +68,9 @@ contract Test_RockPaperScissors_Distribute {
         Assert.equal(address(player1).balance, depositAmount, "Player 1 did not only receive back deposit.");
 
         // if all received the correct balance the contract should have been reset.
-        //Assert.equal(rps.revealDeadline(), 0, "Reveal deadline not reset to 0");
+        // Assert.equal(rps.revealDeadline(), 0, "Reveal deadline not reset to 0");
+        // Assert.equal(rps.revealDeadline(), 0, "Reveal deadline not reset to 0");
+        // Assert.equal(rps.revealDeadline(), 0, "Reveal deadline not reset to 0");
     }
 
     function testDistributePaperBeatsRockPlayer1() public {

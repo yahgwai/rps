@@ -98,7 +98,7 @@ contract RockPaperScissors {
     }
     
     function reveal(uint8 choice, bytes32 blindingFactor) public {
-        // valid choices
+        // only valid choices
         require(choice == rock || choice == paper || choice == scissors);
         
         // find the player index
