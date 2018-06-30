@@ -66,6 +66,9 @@ contract Test_RockPaperScissors_Distribute {
         //check the balance of player 0 and player 1
         Assert.equal(address(player0).balance, depositAmount + (2 * betAmount), "Player 0 did not receive winnings + deposit.");
         Assert.equal(address(player1).balance, depositAmount, "Player 1 did not only receive back deposit.");
+
+        // if all received the correct balance the contract should have been reset.
+        //Assert.equal(rps.revealDeadline(), 0, "Reveal deadline not reset to 0");
     }
 
     function testDistributePaperBeatsRockPlayer1() public {
@@ -162,9 +165,7 @@ contract Test_RockPaperScissors_Distribute {
     //TODO: the above tests didnt seem to catch that delete array does not work?
     //TODO: we defo need to test the remaining state of the contract
 
-    // function testDistributeRockDrawsWithRock() public {}
-    // function testDistributePaperDrawsWithPaper() public {}
-    // function testDistributeScissorsDrawWithScissors() public {}
+    
     // function testDistributeOnlyOneChoiceRevealedWinsAfterRevealDeadlineReached() public {}
     // function testDistributeNoRevealsIsADraw() public {}
     // function testDistributeRevertsWhenContractCantReceiveWinnings() public {}

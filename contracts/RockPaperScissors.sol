@@ -31,9 +31,9 @@ pragma solidity ^0.4.24;
 // 4. Allow a player to forfeit for a cheaper gas cost?
 
 contract RockPaperScissors {
-    uint8 private constant rock = 0x1;
-    uint8 private constant paper = 0x2;
-    uint8 private constant scissors = 0x3;
+    uint8 private constant rock = 0x01;
+    uint8 private constant paper = 0x02;
+    uint8 private constant scissors = 0x03;
     struct CommitChoice {
         address playerAddress;
         bytes32 commitment;
