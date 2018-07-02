@@ -1,35 +1,5 @@
 pragma solidity ^0.4.24;
 
-// ISSUES
-
-// 1. Player cannot currently avoid having their game hijacked by a 3rd party, 
-//      they can do this by jumping in straight after another player commits, then revealing to start the timout
-//      after the reveal the user must play. We can avoid this by having a 'register' phase where no commits money.
-// 2. By setting the deadline in the reveal we give the players the option to
-//      withdraw before one reveals - this shouldnt be allowed, it should be moved into the commit
-
-// concerns - assymetry in setting timeout
-// concerns - timeout possibly not greatly reduced by addition of deposit
-
-// TODO: look at all the access modifiers for all members and functions
-// TODO: what are the consequences?
-
-// TODO: checkout all the integer operations for possible overflows
-
-// TODO:
-// check no re-entrancy
-// check no stack overflow results in uneven distribution
-
-// TODO: consider event logging
-
-
-// IMPROVMENTS:
-
-// 1. Allow second player to reveal without committing.
-// 2. Allow re-use of the contract? Or allow a self destruct to occur?
-// 3. Choose where to send lost deposits.
-// 4. Allow a player to forfeit for a cheaper gas cost?
-
 contract RockPaperScissors {
     uint8 private constant rock = 0x01;
     uint8 private constant paper = 0x02;
@@ -57,10 +27,10 @@ contract RockPaperScissors {
     // p1winp0forfeit   10000111    0x87
 
     uint8[4][4] winMatrix = [
-        [ 0x66, 0x87, 0x87, 0x87 ],
-        [ 0x78, 0x66, 0x74, 0x47 ],
-        [ 0x78, 0x47, 0x66, 0x74 ],
-        [ 0x78, 0x74, 0x47, 0x66 ]
+        [ 0x66, 0x78, 0x78, 0x78 ],
+        [ 0x87, 0x66, 0x74, 0x47 ],
+        [ 0x87, 0x47, 0x66, 0x74 ],
+        [ 0x87, 0x74, 0x47, 0x66 ]
     ];
 
     //initialisation args
@@ -127,9 +97,8 @@ contract RockPaperScissors {
     function distribute() public {
         // to distribute we need:
         // a) to be past the deadline OR b) both players have revealed
-        require(revealDeadline < block.number || (players[0].choice != 0 && players[1].choice != 0));        
+        require(revealDeadline <= block.number || (players[0].choice != 0 && players[1].choice != 0));        
 
-        
         // find the payout
         uint8 payout = winMatrix[players[1].choice][players[0].choice];
 
@@ -155,28 +124,12 @@ contract RockPaperScissors {
             distributedWinnings = distributedWinnings | (payout & 0x0F);
         }
 
-        
-
         // if we have distributed the full payout, then lets zero the state
-        //TODO: this won't work unless we update distributed winnings to a take into account the deposit bits
-        // if((remainingPayout ^ distributedWinnings) == 0) {
-        //     revealDeadline = 0;
-        //     distributedWinnings = 0;
-
-        //     players[0].playerAddress = 0;
-            
-        //     players[0].choice = 0;
-
-        // TODO: this line did not work?
-        //     players[0].commitment = 0x00;
-
-        // TODO: also delete players[0] does not
-            
-
-        //     players[1].playerAddress = 0;
-        //     players[1].choice = 0;
-        //     players[1].commitment = bytes32(0);
-        // }
+        if((remainingPayout ^ distributedWinnings) == 0) {
+            revealDeadline = 0;
+            distributedWinnings = 0;
+            delete players;
+        }
     }
 
     function getBit(uint8 bits, uint8 index) pure private returns(uint8) {
@@ -186,4 +139,32 @@ contract RockPaperScissors {
         //return (uint8((bits << index) & uint8(128))) / 128;
     }
 }
+
+// ISSUES
+
+// 1. We should pass in the address of the other player to 'commit',
+//      then adding a second commit should start the timer
+
+// concerns - assymetry in setting timeout
+// concerns - timeout possibly not greatly reduced by addition of deposit
+
+// TODO: look at all the access modifiers for all members and functions
+// TODO: what are the consequences?
+
+// TODO: checkout all the integer operations for possible overflows
+
+// TODO:
+// check no re-entrancy
+// check no stack overflow results in uneven distribution
+
+// TODO: consider event logging
+
+
+// IMPROVMENTS:
+
+// 1. Allow second player to reveal without committing.
+// 2. Allow re-use of the contract? Or allow a self destruct to occur?
+// 3. Choose where to send lost deposits.
+// 4. Allow a player to forfeit for a cheaper gas cost?
+
 

@@ -137,7 +137,7 @@ let distributeHandler = async () => {
     // get the player
     let player = playerSelector().value;
     // call distribute
-    let transactionReceipt = await rps.methods.distribute().send({ from: player });
+    let transactionReceipt = await rps.methods.distribute().send({ from: player, gas: 200000 });
     console.log("Distribute mined in transaction: ", transactionReceipt);
     let balances = transactionReceipt.events["Payout"].map(e => {
         return {
