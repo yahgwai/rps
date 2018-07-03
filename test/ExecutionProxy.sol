@@ -11,15 +11,9 @@ contract ExecutionProxy {
         target = _target;
     }
 
-    // TODO: keep these logging events?
-    event Fallback(address sender, bytes data, uint256 value);
-    event FallbackSetData(bytes data, uint256 value);
-
     function() payable public {
-        emit Fallback(msg.sender, msg.data, msg.value);
         data = msg.data;
         value = msg.value;
-        emit FallbackSetData(data, value);
     }
 
     function execute() public returns (bool) {

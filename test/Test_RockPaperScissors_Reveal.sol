@@ -57,6 +57,7 @@ contract Test_RockPaperScissors_Reveal {
 
         Assert.isTrue(result1, "Could not reveal player 1 rock.");
         Assert.equal(uint256(choice1), uint256(rock), "Player 1 did not have rock revealed as choice.");
+        Assert.equal(uint(rps.revealDeadline()), uint(block.number + revealSpan), "Deadline not updated.");
 
         RockPaperScissors(player2).reveal(paper, rand2);
         bool result2 = player2.execute();
@@ -83,6 +84,7 @@ contract Test_RockPaperScissors_Reveal {
         bool result = nonPlayer.execute();
 
         Assert.isFalse(result, "Non player was allowed to reveal");
+        Assert.equal(uint(rps.revealDeadline()), uint(0), "Deadline was updated.");
     }
 
     function testRevealRevertsInvalidUpperChoice() public {
@@ -97,6 +99,7 @@ contract Test_RockPaperScissors_Reveal {
         bool result1 = player1.execute();
 
         Assert.isFalse(result1, "Player allowed to reveal '4' as choice.");
+        Assert.equal(uint(rps.revealDeadline()), uint(0), "Deadline was updated.");
     }
 
     function testRevealRevertsInvalidLowerChoice() public {
@@ -111,6 +114,7 @@ contract Test_RockPaperScissors_Reveal {
         bool result1 = player1.execute();
 
         Assert.isFalse(result1, "Player allowed to reveal '0' as choice.");
+        Assert.equal(uint(rps.revealDeadline()), uint(0), "Deadline was updated.");
     }
 
 
@@ -129,6 +133,7 @@ contract Test_RockPaperScissors_Reveal {
         uint8 choice;
         address playerAddress;
         (playerAddress, commitment, choice) = rps.players(0);
+        //TODO: 
         Assert.equal(uint(choice), uint(0), "player 2 allowed to update choice of player 1.");
     }
 }

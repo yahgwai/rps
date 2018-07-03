@@ -152,11 +152,6 @@ contract RockPaperScissors {
 // TODO: what are the consequences?
 
 // TODO: checkout all the integer operations for possible overflows
-
-// TODO:
-// check no re-entrancy
-// check no stack overflow results in uneven distribution
-
 // TODO: consider event logging
 
 

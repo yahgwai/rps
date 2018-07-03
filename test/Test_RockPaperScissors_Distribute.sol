@@ -32,19 +32,7 @@ contract Test_RockPaperScissors_Distribute {
     function commitmentPaper(address sender) private view returns (bytes32) {
         return keccak256(abi.encodePacked(sender, paper, rand2));
     }
-
-    //TODO: maybe also consider checking that player 1 had nothing untoward occur to them
-
-    // function testConstructorSetsRevealDeadlineSpan() public {}
-    // function testConstructorSetsDepositAmount() public {}
-
-    // function testCommitTestStoresDeposit() public {}
-
-    // function testRevealSuccessfulFirstRevealSetsRevealDeadline() public {}
-    // function testRevealSubsequentRevealsDoNotAdjustRevealDeadline() public {}
-    // function testRevealCanStillBeSuccessfullyCalledAfterDeadline() public {}
-    // function testRevealCannotBeCalledAfterDistribute() public {}
-
+    
     function commitRevealAndDistribute (
         RpsProxy player0, RpsProxy player1,
         uint8 choice0, uint8 choice1, 
@@ -204,6 +192,24 @@ contract Test_RockPaperScissors_Distribute {
         //check the balance of player 0 and player 1
         Assert.equal(address(player1).balance, commitAmount, "Player 0 did not receive back commit amount.");
         Assert.equal(address(player0).balance, commitAmount, "Player 1 did not receive back commit amount.");
+        assertStateEmptied(rps);
+    }
+
+    function testDistributeMultipleCallsAreExceptedButDoNothing() public {
+        RockPaperScissors rps = new RockPaperScissors(betAmount, depositAmount, revealSpan);
+        RpsProxy player0 = new RpsProxy(rps);
+        RpsProxy player1 = new RpsProxy(rps);
+        commitRevealAndDistribute(player0, player1, scissors, scissors, rand1, rand2);
+
+        //check the balance of player 0 and player 1
+        Assert.equal(address(player1).balance, commitAmount, "Player 0 did not receive back commit amount.");
+        Assert.equal(address(player0).balance, commitAmount, "Player 1 did not receive back commit amount.");
+        assertStateEmptied(rps);
+
+        rps.distribute();
+
+        Assert.equal(address(player1).balance, commitAmount, "Player 0 did not still have commit amount after second distribute.");
+        Assert.equal(address(player0).balance, commitAmount, "Player 1 did not still have commit amount after second distribute.");
         assertStateEmptied(rps);
     }
 }

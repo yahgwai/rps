@@ -19,32 +19,12 @@ contract Test_RockPaperScissors_DistributeExtended {
     uint256 betAmount = 100;
     uint256 commitAmount = depositAmount + betAmount;
     
-    
     uint256 revealSpan = 10;
     uint8 rock = 1;
     uint8 paper = 2;
     uint8 scissors = 3;
     bytes32 rand1 = "abc";
     bytes32 rand2 = "123";
-
-    function commitmentRock(address sender) private view returns (bytes32) {
-        return keccak256(abi.encodePacked(sender, rock, rand1));
-    }
-    function commitmentPaper(address sender) private view returns (bytes32) {
-        return keccak256(abi.encodePacked(sender, paper, rand2));
-    }
-
-    //TODO: maybe also consider checking that player 1 had nothing untoward occur to them
-
-    // function testConstructorSetsRevealDeadlineSpan() public {}
-    // function testConstructorSetsDepositAmount() public {}
-
-    // function testCommitTestStoresDeposit() public {}
-
-    // function testRevealSuccessfulFirstRevealSetsRevealDeadline() public {}
-    // function testRevealSubsequentRevealsDoNotAdjustRevealDeadline() public {}
-    // function testRevealCanStillBeSuccessfullyCalledAfterDeadline() public {}
-    // function testRevealCannotBeCalledAfterDistribute() public {}
 
     function commitRevealAndDistribute (
         RpsProxy player0, RpsProxy player1,
@@ -127,7 +107,6 @@ contract Test_RockPaperScissors_DistributeExtended {
         Assert.equal(uint(rps.distributedWinnings()), uint(0), "Distributed winnings not reset to 0");
         assertPlayersEmpty(rps);
     }
-
     
     function testDistributeOnlyPlayer0ChoiceRevealedWinsAfterRevealDeadlineReached() public {
         RockPaperScissors rps = new RockPaperScissors(betAmount, depositAmount, 0);
@@ -222,30 +201,4 @@ contract Test_RockPaperScissors_DistributeExtended {
         Assert.equal(address(player1).balance, commitAmount, "Player 1 did not draw.");
         assertPlayersEmpty(rps);
     }
-
-    function testDistributeMultipleCallsAreExceptedButDoNothing() public {
-        RockPaperScissors rps = new RockPaperScissors(betAmount, depositAmount, revealSpan);
-        RpsProxy player0 = new RpsProxy(rps);
-        RpsProxy player1 = new RpsProxy(rps);
-        commitRevealAndDistribute(player0, player1, scissors, scissors, rand1, rand2);
-
-        //check the balance of player 0 and player 1
-        Assert.equal(address(player1).balance, commitAmount, "Player 0 did not receive back commit amount.");
-        Assert.equal(address(player0).balance, commitAmount, "Player 1 did not receive back commit amount.");
-        assertStateEmptied(rps);
-
-        rps.distribute();
-
-        Assert.equal(address(player1).balance, commitAmount, "Player 0 did not still have commit amount after second distribute.");
-        Assert.equal(address(player0).balance, commitAmount, "Player 1 did not still have commit amount after second distribute.");
-        assertStateEmptied(rps);
-    }
-
-    // function testDistributeDepositAndWinningsDistributionCannotBeBlockedByRevertDuringDistributionToOtherParty() public {}
-    
-    //TODO: for all of the above check that a reset occurs
-
-
-    // function testFullFlowCanOccurWithoutDeposit() public {}
-    // function testFullFlowCanOccurWithoutBet() public {}
 }
