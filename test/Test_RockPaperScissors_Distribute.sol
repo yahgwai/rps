@@ -20,22 +20,19 @@ contract Test_RockPaperScissors_Distribute {
     
     
     uint256 revealSpan = 10;
-    uint8 rock = 1;
-    uint8 paper = 2;
-    uint8 scissors = 3;
     bytes32 rand1 = "abc";
     bytes32 rand2 = "123";
 
     function commitmentRock(address sender) private view returns (bytes32) {
-        return keccak256(abi.encodePacked(sender, rock, rand1));
+        return keccak256(abi.encodePacked(sender, RockPaperScissors.Choice.Rock, rand1));
     }
     function commitmentPaper(address sender) private view returns (bytes32) {
-        return keccak256(abi.encodePacked(sender, paper, rand2));
+        return keccak256(abi.encodePacked(sender, RockPaperScissors.Choice.Paper, rand2));
     }
     
     function commitRevealAndDistribute (
         RpsProxy player0, RpsProxy player1,
-        uint8 choice0, uint8 choice1, 
+        RockPaperScissors.Choice choice0, RockPaperScissors.Choice choice1, 
         bytes32 blind0, bytes32 blind1) public {
 
         //commit
@@ -53,12 +50,12 @@ contract Test_RockPaperScissors_Distribute {
     function assertPlayersEqual(RockPaperScissors rps, CommitChoice player0, CommitChoice player1) private {
         address playerAddress0;
         bytes32 commitment0;
-        uint8 choice0;
+        RockPaperScissors.Choice choice0;
         (playerAddress0, commitment0, choice0) = rps.players(0);
 
         address playerAddress1;
         bytes32 commitment1;
-        uint8 choice1;
+        RockPaperScissors.Choice choice1;
         (playerAddress1, commitment1, choice1) = rps.players(1);
 
         Assert.equal(playerAddress0, player0.playerAddress, "Player 0 address does not equal supplied one.");
@@ -88,7 +85,7 @@ contract Test_RockPaperScissors_Distribute {
         RockPaperScissors rps = new RockPaperScissors(betAmount, depositAmount, revealSpan);
         RpsProxy player0 = new RpsProxy(rps);
         RpsProxy player1 = new RpsProxy(rps);
-        commitRevealAndDistribute(player0, player1, paper, rock, rand1, rand2);
+        commitRevealAndDistribute(player0, player1, RockPaperScissors.Choice.Paper, RockPaperScissors.Choice.Rock, rand1, rand2);
 
         //check the balance of player 0 and player 1
         Assert.equal(address(player0).balance, depositAmount + (2 * betAmount), "Player 0 did not receive winnings + deposit.");
@@ -100,7 +97,7 @@ contract Test_RockPaperScissors_Distribute {
         RockPaperScissors rps = new RockPaperScissors(betAmount, depositAmount, revealSpan);
         RpsProxy player0 = new RpsProxy(rps);
         RpsProxy player1 = new RpsProxy(rps);
-        commitRevealAndDistribute(player0, player1, rock, paper, rand1, rand2);
+        commitRevealAndDistribute(player0, player1, RockPaperScissors.Choice.Rock, RockPaperScissors.Choice.Paper, rand1, rand2);
 
         //check the balance of player 0 and player 1
         Assert.equal(address(player1).balance, depositAmount + (2 * betAmount), "Player 1 did not receive winnings + deposit.");
@@ -113,7 +110,7 @@ contract Test_RockPaperScissors_Distribute {
         RockPaperScissors rps = new RockPaperScissors(betAmount, depositAmount, revealSpan);
         RpsProxy player0 = new RpsProxy(rps);
         RpsProxy player1 = new RpsProxy(rps);
-        commitRevealAndDistribute(player0, player1, scissors, paper, rand1, rand2);
+        commitRevealAndDistribute(player0, player1, RockPaperScissors.Choice.Scissors, RockPaperScissors.Choice.Paper, rand1, rand2);
 
         //check the balance of player 0 and player 1
         Assert.equal(address(player0).balance, depositAmount + (2 * betAmount), "Player 0 did not receive winnings + deposit.");
@@ -125,7 +122,7 @@ contract Test_RockPaperScissors_Distribute {
         RockPaperScissors rps = new RockPaperScissors(betAmount, depositAmount, revealSpan);
         RpsProxy player0 = new RpsProxy(rps);
         RpsProxy player1 = new RpsProxy(rps);
-        commitRevealAndDistribute(player0, player1, paper, scissors, rand1, rand2);
+        commitRevealAndDistribute(player0, player1, RockPaperScissors.Choice.Paper, RockPaperScissors.Choice.Scissors, rand1, rand2);
 
         //check the balance of player 0 and player 1
         Assert.equal(address(player1).balance, depositAmount + (2 * betAmount), "Player 0 did not receive winnings + deposit.");
@@ -138,7 +135,7 @@ contract Test_RockPaperScissors_Distribute {
         RockPaperScissors rps = new RockPaperScissors(betAmount, depositAmount, revealSpan);
         RpsProxy player0 = new RpsProxy(rps);
         RpsProxy player1 = new RpsProxy(rps);
-        commitRevealAndDistribute(player0, player1, rock, scissors, rand1, rand2);
+        commitRevealAndDistribute(player0, player1, RockPaperScissors.Choice.Rock, RockPaperScissors.Choice.Scissors, rand1, rand2);
 
         //check the balance of player 0 and player 1
         Assert.equal(address(player0).balance, depositAmount + (2 * betAmount), "Player 0 did not receive winnings + deposit.");
@@ -150,7 +147,7 @@ contract Test_RockPaperScissors_Distribute {
         RockPaperScissors rps = new RockPaperScissors(betAmount, depositAmount, revealSpan);
         RpsProxy player0 = new RpsProxy(rps);
         RpsProxy player1 = new RpsProxy(rps);
-        commitRevealAndDistribute(player0, player1, scissors, rock, rand1, rand2);
+        commitRevealAndDistribute(player0, player1, RockPaperScissors.Choice.Scissors, RockPaperScissors.Choice.Rock, rand1, rand2);
 
         //check the balance of player 0 and player 1
         Assert.equal(address(player1).balance, depositAmount + (2 * betAmount), "Player 0 did not receive winnings + deposit.");
@@ -163,7 +160,7 @@ contract Test_RockPaperScissors_Distribute {
         RockPaperScissors rps = new RockPaperScissors(betAmount, depositAmount, revealSpan);
         RpsProxy player0 = new RpsProxy(rps);
         RpsProxy player1 = new RpsProxy(rps);
-        commitRevealAndDistribute(player0, player1, rock, rock, rand1, rand2);
+        commitRevealAndDistribute(player0, player1, RockPaperScissors.Choice.Rock, RockPaperScissors.Choice.Rock, rand1, rand2);
 
         //check the balance of player 0 and player 1
         Assert.equal(address(player1).balance, commitAmount, "Player 0 did not receive back commit amount.");
@@ -175,7 +172,7 @@ contract Test_RockPaperScissors_Distribute {
         RockPaperScissors rps = new RockPaperScissors(betAmount, depositAmount, revealSpan);
         RpsProxy player0 = new RpsProxy(rps);
         RpsProxy player1 = new RpsProxy(rps);
-        commitRevealAndDistribute(player0, player1, paper, paper, rand1, rand2);
+        commitRevealAndDistribute(player0, player1, RockPaperScissors.Choice.Paper, RockPaperScissors.Choice.Paper, rand1, rand2);
 
         //check the balance of player 0 and player 1
         Assert.equal(address(player1).balance, commitAmount, "Player 0 did not receive back commit amount.");
@@ -187,7 +184,7 @@ contract Test_RockPaperScissors_Distribute {
         RockPaperScissors rps = new RockPaperScissors(betAmount, depositAmount, revealSpan);
         RpsProxy player0 = new RpsProxy(rps);
         RpsProxy player1 = new RpsProxy(rps);
-        commitRevealAndDistribute(player0, player1, scissors, scissors, rand1, rand2);
+        commitRevealAndDistribute(player0, player1, RockPaperScissors.Choice.Scissors, RockPaperScissors.Choice.Scissors, rand1, rand2);
 
         //check the balance of player 0 and player 1
         Assert.equal(address(player1).balance, commitAmount, "Player 0 did not receive back commit amount.");
@@ -199,7 +196,7 @@ contract Test_RockPaperScissors_Distribute {
         RockPaperScissors rps = new RockPaperScissors(betAmount, depositAmount, revealSpan);
         RpsProxy player0 = new RpsProxy(rps);
         RpsProxy player1 = new RpsProxy(rps);
-        commitRevealAndDistribute(player0, player1, scissors, scissors, rand1, rand2);
+        commitRevealAndDistribute(player0, player1, RockPaperScissors.Choice.Scissors, RockPaperScissors.Choice.Scissors, rand1, rand2);
 
         //check the balance of player 0 and player 1
         Assert.equal(address(player1).balance, commitAmount, "Player 0 did not receive back commit amount.");

@@ -17,17 +17,14 @@ contract Test_RockPaperScissors_Commit {
 
     // TODO: test greater deposit amounts
 
-    uint8 rock = 1;
-    uint8 paper = 2;
-    uint8 scissors = 3;
     bytes32 rand1 = "abc";
     bytes32 rand2 = "123";
 
     function commitmentRock(address sender) private view returns (bytes32) {
-        return keccak256(abi.encodePacked(sender, rock, rand1));
+        return keccak256(abi.encodePacked(sender, RockPaperScissors.Choice.Rock, rand1));
     }
     function commitmentPaper(address sender) private view returns (bytes32) {
-        return keccak256(abi.encodePacked(sender, paper, rand2));
+        return keccak256(abi.encodePacked(sender, RockPaperScissors.Choice.Paper, rand2));
     }
     
     function testCommitIncreasesBalance() public {
@@ -72,7 +69,7 @@ contract Test_RockPaperScissors_Commit {
         RockPaperScissors rps = new RockPaperScissors(betAmount, depositAmount, revealSpan);
         rps.commit.value(commitAmount)(commitmentRock(this));
         bytes32 commitment;
-        uint8 choice;
+        RockPaperScissors.Choice choice;
         address playerAddress;
         (playerAddress, commitment, choice) = rps.players(0); 
         Assert.equal(commitment, commitmentRock(this), "Commitment not stored against sender address.");
@@ -87,12 +84,12 @@ contract Test_RockPaperScissors_Commit {
         bool result = executionProxy.execute();
 
         bytes32 commitment1;
-        uint8 choice1;
+        RockPaperScissors.Choice choice1;
         address playerAddress1;
         (playerAddress1, commitment1, choice1) = rps.players(0); 
 
         bytes32 commitment2;
-        uint8 choice2;
+        RockPaperScissors.Choice choice2;
         address playerAddress2;
         (playerAddress2, commitment2, choice2) = rps.players(1); 
 

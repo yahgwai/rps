@@ -7,10 +7,11 @@ import "../contracts/RockPaperScissors.sol";
 import "./RpsProxy.sol";
 
 contract Test_RockPaperScissors_DistributeExtendedMore {
+    //TODO: remove this and the other one in distribute extended
     struct CommitChoice {
         address playerAddress;
         bytes32 commitment;
-        uint8 choice;        
+        RockPaperScissors.Choice choice;        
     }
 
     uint256 public initialBalance = 20 ether;
@@ -20,21 +21,18 @@ contract Test_RockPaperScissors_DistributeExtendedMore {
     uint256 commitAmount = depositAmount + betAmount;
     
     uint256 revealSpan = 10;
-    uint8 rock = 1;
-    uint8 paper = 2;
-    uint8 scissors = 3;
     bytes32 rand1 = "abc";
     bytes32 rand2 = "123";
 
     function assertPlayersEqual(RockPaperScissors rps, CommitChoice player0, CommitChoice player1) private {
         address playerAddress0;
         bytes32 commitment0;
-        uint8 choice0;
+        RockPaperScissors.Choice choice0;
         (playerAddress0, commitment0, choice0) = rps.players(0);
 
         address playerAddress1;
         bytes32 commitment1;
-        uint8 choice1;
+        RockPaperScissors.Choice choice1;
         (playerAddress1, commitment1, choice1) = rps.players(1);
 
         Assert.equal(playerAddress0, player0.playerAddress, "Player 0 address does not equal supplied one.");
@@ -52,16 +50,16 @@ contract Test_RockPaperScissors_DistributeExtendedMore {
         RpsProxy player1 = new RpsProxy(rps);
 
         //commit
-        bytes32 commitment0 = keccak256(abi.encodePacked(player0, rock, rand1));
-        bytes32 commitment1 = keccak256(abi.encodePacked(player1, rock, rand2));
+        bytes32 commitment0 = keccak256(abi.encodePacked(player0, RockPaperScissors.Choice.Rock, rand1));
+        bytes32 commitment1 = keccak256(abi.encodePacked(player1, RockPaperScissors.Choice.Rock, rand2));
         RockPaperScissors(player0).commit.value(commitAmount)(commitment0);
         player0.execute();
         player1.commit.value(commitAmount)(commitment1);
 
         //reveal
-        RockPaperScissors(player0).reveal(rock, rand1);
+        RockPaperScissors(player0).reveal(RockPaperScissors.Choice.Rock, rand1);
         player0.execute();
-        player1.reveal(rock, rand2);
+        player1.reveal(RockPaperScissors.Choice.Rock, rand2);
         
         //distribute
         player1.distribute();
@@ -70,7 +68,7 @@ contract Test_RockPaperScissors_DistributeExtendedMore {
         Assert.equal(address(player1).balance, commitAmount, "Player 1 did not receive correct amount.");
         Assert.equal(address(player0).balance, 0, "Player 0 should not receive any amount.");
         Assert.equal(uint(rps.distributedWinnings()), uint(0x06), "Winning should only be distributed to player 1.");
-        assertPlayersEqual(rps, CommitChoice(player0, commitment0, rock), CommitChoice(player1, commitment1, rock));
+        assertPlayersEqual(rps, CommitChoice(player0, commitment0, RockPaperScissors.Choice.Rock), CommitChoice(player1, commitment1, RockPaperScissors.Choice.Rock));
     }
 
     function testWinningsAreDistributedWhenOnePlayer1CannotReceive() public {
@@ -79,16 +77,16 @@ contract Test_RockPaperScissors_DistributeExtendedMore {
         ExecutionProxy player1 = new ExecutionProxy(rps);
 
         //commit
-        bytes32 commitment0 = keccak256(abi.encodePacked(player0, rock, rand1));
-        bytes32 commitment1 = keccak256(abi.encodePacked(player1, rock, rand2));
+        bytes32 commitment0 = keccak256(abi.encodePacked(player0, RockPaperScissors.Choice.Rock, rand1));
+        bytes32 commitment1 = keccak256(abi.encodePacked(player1, RockPaperScissors.Choice.Rock, rand2));
         player0.commit.value(commitAmount)(commitment0);
         RockPaperScissors(player1).commit.value(commitAmount)(commitment1);
         player1.execute();
         
 
         //reveal
-        player0.reveal(rock, rand1);
-        RockPaperScissors(player1).reveal(rock, rand2);
+        player0.reveal(RockPaperScissors.Choice.Rock, rand1);
+        RockPaperScissors(player1).reveal(RockPaperScissors.Choice.Rock, rand2);
         player1.execute();
         
         //distribute
@@ -98,7 +96,7 @@ contract Test_RockPaperScissors_DistributeExtendedMore {
         Assert.equal(address(player0).balance, commitAmount, "Player 0 did not receive correct amount.");
         Assert.equal(address(player1).balance, 0, "Player 1 should not receive any amount.");
         Assert.equal(uint(rps.distributedWinnings()), uint(0x60), "Winning should only be distributed to player 0.");
-        assertPlayersEqual(rps, CommitChoice(player0, commitment0, rock), CommitChoice(player1, commitment1, rock));
+        assertPlayersEqual(rps, CommitChoice(player0, commitment0, RockPaperScissors.Choice.Rock), CommitChoice(player1, commitment1, RockPaperScissors.Choice.Rock));
     }
 
     //TODO: maybe also consider checking that player 1 had nothing untoward occur to them

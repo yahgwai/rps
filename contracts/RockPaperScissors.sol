@@ -4,10 +4,18 @@ contract RockPaperScissors {
     uint8 private constant rock = 0x01;
     uint8 private constant paper = 0x02;
     uint8 private constant scissors = 0x03;
+    
+    enum Choice {
+        None,
+        Rock,
+        Paper,
+        Scissors
+    }
+
     struct CommitChoice {
         address playerAddress;
         bytes32 commitment;
-        uint8 choice;        
+        Choice choice;        
     }
 
     //TODO: decide whether to keep burn deposits in the state.
@@ -64,12 +72,12 @@ contract RockPaperScissors {
         uint8 playerIndex = players[0].commitment == bytes32(0x0) ? 0 : 1;
         
         // store the commitment, and the record of the commitment        
-        players[playerIndex] = CommitChoice(msg.sender, commitment, 0);
+        players[playerIndex] = CommitChoice(msg.sender, commitment, Choice.None);
     }
     
-    function reveal(uint8 choice, bytes32 blindingFactor) public {
+    function reveal(Choice choice, bytes32 blindingFactor) public {
         // only valid choices
-        require(choice == rock || choice == paper || choice == scissors);
+        require(choice == Choice.Rock || choice == Choice.Paper || choice == Choice.Scissors);
         
         // find the player index
         uint8 playerIndex;
@@ -97,10 +105,10 @@ contract RockPaperScissors {
     function distribute() public {
         // to distribute we need:
         // a) to be past the deadline OR b) both players have revealed
-        require(revealDeadline <= block.number || (players[0].choice != 0 && players[1].choice != 0));        
+        require(revealDeadline <= block.number || (players[0].choice != Choice.None && players[1].choice != Choice.None));        
 
         // find the payout
-        uint8 payout = winMatrix[players[1].choice][players[0].choice];
+        uint8 payout = winMatrix[uint(players[1].choice)][uint(players[0].choice)];
 
         // remove any existing payouts
         uint8 remainingPayout = payout ^ distributedWinnings;

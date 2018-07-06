@@ -13,7 +13,7 @@ contract RpsProxy {
         rps.commit.value(msg.value)(commitment);
     }
 
-    function reveal(uint8 choice, bytes32 blind) public {
+    function reveal(RockPaperScissors.Choice choice, bytes32 blind) public {
         rps.reveal(choice, blind);
     }
 

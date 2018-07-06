@@ -10,7 +10,7 @@ contract Test_RockPaperScissors_DistributeExtended {
     struct CommitChoice {
         address playerAddress;
         bytes32 commitment;
-        uint8 choice;        
+        RockPaperScissors.Choice choice;        
     }
 
     uint256 public initialBalance = 10 ether;
@@ -20,15 +20,13 @@ contract Test_RockPaperScissors_DistributeExtended {
     uint256 commitAmount = depositAmount + betAmount;
     
     uint256 revealSpan = 10;
-    uint8 rock = 1;
-    uint8 paper = 2;
-    uint8 scissors = 3;
+    
     bytes32 rand1 = "abc";
     bytes32 rand2 = "123";
 
     function commitRevealAndDistribute (
         RpsProxy player0, RpsProxy player1,
-        uint8 choice0, uint8 choice1, 
+        RockPaperScissors.Choice choice0, RockPaperScissors.Choice choice1, 
         bytes32 blind0, bytes32 blind1) public {
 
         //commit
@@ -45,7 +43,7 @@ contract Test_RockPaperScissors_DistributeExtended {
 
     function commitReveal0NotReveal1AndDistribute (
         RpsProxy player0, RpsProxy player1,
-        uint8 choice0, uint8 choice1, 
+        RockPaperScissors.Choice choice0, RockPaperScissors.Choice choice1, 
         bytes32 blind0, bytes32 blind1) public {
 
         //commit
@@ -61,7 +59,7 @@ contract Test_RockPaperScissors_DistributeExtended {
 
     function commitReveal1NotReveal0AndDistribute (
         RpsProxy player0, RpsProxy player1,
-        uint8 choice0, uint8 choice1, 
+        RockPaperScissors.Choice choice0, RockPaperScissors.Choice choice1, 
         bytes32 blind0, bytes32 blind1) public {
 
         //commit
@@ -78,12 +76,12 @@ contract Test_RockPaperScissors_DistributeExtended {
     function assertPlayersEqual(RockPaperScissors rps, CommitChoice player0, CommitChoice player1) private {
         address playerAddress0;
         bytes32 commitment0;
-        uint8 choice0;
+        RockPaperScissors.Choice choice0;
         (playerAddress0, commitment0, choice0) = rps.players(0);
 
         address playerAddress1;
         bytes32 commitment1;
-        uint8 choice1;
+        RockPaperScissors.Choice choice1;
         (playerAddress1, commitment1, choice1) = rps.players(1);
 
         Assert.equal(playerAddress0, player0.playerAddress, "Player 0 address does not equal supplied one.");
@@ -96,8 +94,8 @@ contract Test_RockPaperScissors_DistributeExtended {
     }
 
     function assertPlayersEmpty(RockPaperScissors rps) private {
-        CommitChoice memory player0 = CommitChoice(0, 0, 0);
-        CommitChoice memory  player1 = CommitChoice(0, 0, 0);
+        CommitChoice memory player0 = CommitChoice(0, 0, RockPaperScissors.Choice.None);
+        CommitChoice memory  player1 = CommitChoice(0, 0, RockPaperScissors.Choice.None);
         assertPlayersEqual(rps, player0, player1);
     }
 
@@ -112,7 +110,7 @@ contract Test_RockPaperScissors_DistributeExtended {
         RockPaperScissors rps = new RockPaperScissors(betAmount, depositAmount, 0);
         RpsProxy player0 = new RpsProxy(rps);
         RpsProxy player1 = new RpsProxy(rps);
-        commitReveal0NotReveal1AndDistribute(player0, player1, scissors, rock, rand1, rand2);
+        commitReveal0NotReveal1AndDistribute(player0, player1, RockPaperScissors.Choice.Scissors, RockPaperScissors.Choice.Rock, rand1, rand2);
 
         // check the balance of player 0 and player 1
         Assert.equal(address(player0).balance, betAmount * 2 + depositAmount, "Player 0 did not win.");
@@ -125,7 +123,7 @@ contract Test_RockPaperScissors_DistributeExtended {
         RockPaperScissors rps = new RockPaperScissors(betAmount, depositAmount, 0);
         RpsProxy player0 = new RpsProxy(rps);
         RpsProxy player1 = new RpsProxy(rps);
-        commitReveal1NotReveal0AndDistribute(player0, player1, scissors, rock, rand1, rand2);
+        commitReveal1NotReveal0AndDistribute(player0, player1, RockPaperScissors.Choice.Scissors, RockPaperScissors.Choice.Rock, rand1, rand2);
 
         // check the balance of player 0 and player 1
         Assert.equal(address(player1).balance, betAmount * 2 + depositAmount, "Player 1 did not win.");
@@ -140,14 +138,14 @@ contract Test_RockPaperScissors_DistributeExtended {
         RpsProxy player1 = new RpsProxy(rps);
 
         //commit
-        bytes32 commitment0 = keccak256(abi.encodePacked(player0, rock, rand1));
-        bytes32 commitment1 = keccak256(abi.encodePacked(player1, paper, rand2));
+        bytes32 commitment0 = keccak256(abi.encodePacked(player0, RockPaperScissors.Choice.Rock, rand1));
+        bytes32 commitment1 = keccak256(abi.encodePacked(player1, RockPaperScissors.Choice.Paper, rand2));
         RockPaperScissors(player0).commit.value(commitAmount)(commitment0);
         player0.execute();
         player1.commit.value(commitAmount)(commitment1);
 
         //reveal
-        RockPaperScissors(player0).reveal(rock, rand1);
+        RockPaperScissors(player0).reveal(RockPaperScissors.Choice.Rock, rand1);
         player0.execute();
         
         //distribute
@@ -156,7 +154,7 @@ contract Test_RockPaperScissors_DistributeExtended {
 
         // check the balance of player 0 and player 1
         Assert.isFalse(result, "Distribute succeeded before deadline.");        
-        assertPlayersEqual(rps, CommitChoice(player0, commitment0, rock), CommitChoice(player1, commitment1, 0));
+        assertPlayersEqual(rps, CommitChoice(player0, commitment0, RockPaperScissors.Choice.Rock), CommitChoice(player1, commitment1, RockPaperScissors.Choice.None));
     }
 
     function testDistributeOnlyPlayer1ChoiceRevealedNoOneWinsBeforeDeadline() public {
@@ -165,14 +163,14 @@ contract Test_RockPaperScissors_DistributeExtended {
         RpsProxy player1 = new RpsProxy(rps);
 
         //commit
-        bytes32 commitment0 = keccak256(abi.encodePacked(player0, rock, rand1));
-        bytes32 commitment1 = keccak256(abi.encodePacked(player1, paper, rand2));
+        bytes32 commitment0 = keccak256(abi.encodePacked(player0, RockPaperScissors.Choice.Rock, rand1));
+        bytes32 commitment1 = keccak256(abi.encodePacked(player1, RockPaperScissors.Choice.Paper, rand2));
         RockPaperScissors(player0).commit.value(commitAmount)(commitment0);
         player0.execute();
         player1.commit.value(commitAmount)(commitment1);
 
         //reveal
-        player1.reveal(paper, rand2);
+        player1.reveal(RockPaperScissors.Choice.Paper, rand2);
         
         //distribute
         RockPaperScissors(player0).distribute();
@@ -180,7 +178,7 @@ contract Test_RockPaperScissors_DistributeExtended {
 
         // check the balance of player 0 and player 1
         Assert.isFalse(result, "Distribute succeeded before deadline.");        
-        assertPlayersEqual(rps, CommitChoice(player0, commitment0, 0), CommitChoice(player1, commitment1, paper));
+        assertPlayersEqual(rps, CommitChoice(player0, commitment0, RockPaperScissors.Choice.None), CommitChoice(player1, commitment1, RockPaperScissors.Choice.Paper));
     }
 
     function testDistributeSendBackMoneyIfNoReveals() public {
@@ -190,8 +188,8 @@ contract Test_RockPaperScissors_DistributeExtended {
         RpsProxy player1 = new RpsProxy(rps);
 
         //commit
-        player0.commit.value(commitAmount)(keccak256(abi.encodePacked(player0, rock, rand1)));
-        player1.commit.value(commitAmount)(keccak256(abi.encodePacked(player1, paper, rand2)));
+        player0.commit.value(commitAmount)(keccak256(abi.encodePacked(player0, RockPaperScissors.Choice.Rock, rand1)));
+        player1.commit.value(commitAmount)(keccak256(abi.encodePacked(player1, RockPaperScissors.Choice.Paper, rand2)));
         
         //distribute
         player0.distribute();
