@@ -50,7 +50,8 @@ contract Test_RockPaperScissors_Reveal {
         bytes32 commitment1;
         RockPaperScissors.Choice choice1;
         address playerAddress1;
-        (playerAddress1, commitment1, choice1) = rps.players(0);
+        bool receivedWinnings1;
+        (playerAddress1, commitment1, choice1, receivedWinnings1) = rps.players(0);
 
         Assert.isTrue(result1, "Could not reveal player 1 rock.");
         Assert.equal(uint256(choice1), uint256(RockPaperScissors.Choice.Rock), "Player 1 did not have rock revealed as choice.");
@@ -62,7 +63,8 @@ contract Test_RockPaperScissors_Reveal {
         bytes32 commitment2;
         RockPaperScissors.Choice choice2;
         address playerAddress2;
-        (playerAddress2, commitment2, choice2) = rps.players(1);
+        bool receivedWinnings2;
+        (playerAddress2, commitment2, choice2, receivedWinnings2) = rps.players(1);
 
         Assert.isTrue(result2, "Could not reveal player 2 paper.");
         Assert.equal(uint(choice2), uint(RockPaperScissors.Choice.Paper), "Player 2 did not have paper revealed as choice.");
@@ -117,7 +119,8 @@ contract Test_RockPaperScissors_Reveal {
         bytes32 commitment;
         RockPaperScissors.Choice choice;
         address playerAddress;
-        (playerAddress, commitment, choice) = rps.players(0);
+        bool receivedWinnings;
+        (playerAddress, commitment, choice, receivedWinnings) = rps.players(0);
         //TODO: 
         Assert.equal(uint(choice), uint(RockPaperScissors.Choice.None), "player 2 allowed to update choice of player 1.");
     }

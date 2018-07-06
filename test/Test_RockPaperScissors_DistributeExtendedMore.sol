@@ -7,13 +7,6 @@ import "../contracts/RockPaperScissors.sol";
 import "./RpsProxy.sol";
 
 contract Test_RockPaperScissors_DistributeExtendedMore {
-    //TODO: remove this and the other one in distribute extended
-    struct CommitChoice {
-        address playerAddress;
-        bytes32 commitment;
-        RockPaperScissors.Choice choice;        
-    }
-
     uint256 public initialBalance = 20 ether;
     
     uint256 depositAmount = 25;
@@ -24,24 +17,29 @@ contract Test_RockPaperScissors_DistributeExtendedMore {
     bytes32 rand1 = "abc";
     bytes32 rand2 = "123";
 
-    function assertPlayersEqual(RockPaperScissors rps, CommitChoice player0, CommitChoice player1) private {
+    function assertPlayersEqual(RockPaperScissors rps, RockPaperScissors.CommitChoice player0, RockPaperScissors.CommitChoice player1) private {
         address playerAddress0;
         bytes32 commitment0;
         RockPaperScissors.Choice choice0;
-        (playerAddress0, commitment0, choice0) = rps.players(0);
+        bool receivedWinnings0;
+        (playerAddress0, commitment0, choice0, receivedWinnings0) = rps.players(0);
 
         address playerAddress1;
         bytes32 commitment1;
         RockPaperScissors.Choice choice1;
-        (playerAddress1, commitment1, choice1) = rps.players(1);
+        bool receivedWinnings1;
+        (playerAddress1, commitment1, choice1, receivedWinnings1) = rps.players(1);
 
+        //TODO: defo check received winnings in ALL the distributes
         Assert.equal(playerAddress0, player0.playerAddress, "Player 0 address does not equal supplied one.");
         Assert.equal(uint(choice0), uint(player0.choice), "Player 0 choice does not equal supplied one.");
         Assert.equal(commitment0, player0.commitment, "Player 0 commitment does not equal supplied one.");
+        Assert.equal(receivedWinnings0, player0.receivedWinnings, "Player 0 received winnings does not equal supplied one.");
 
         Assert.equal(playerAddress1, player1.playerAddress, "Player 1 address does not equal supplied one.");
         Assert.equal(uint(choice1), uint(player1.choice), "Player 1 choice does not equal supplied one.");
         Assert.equal(commitment1, player1.commitment, "Player 1 commitment does not equal supplied one.");
+        Assert.equal(receivedWinnings1, player1.receivedWinnings, "Player 1 received winnings does not equal supplied one.");
     }
 
     function testWinningsAreDistributedWhenOnePlayer0CannotReceive() public {
@@ -67,8 +65,7 @@ contract Test_RockPaperScissors_DistributeExtendedMore {
         // payer 1 should have funds, player 0 should not as we cant send money to an execution proxy - the fallback has been overridden with storage
         Assert.equal(address(player1).balance, commitAmount, "Player 1 did not receive correct amount.");
         Assert.equal(address(player0).balance, 0, "Player 0 should not receive any amount.");
-        Assert.equal(uint(rps.distributedWinnings()), uint(0x06), "Winning should only be distributed to player 1.");
-        assertPlayersEqual(rps, CommitChoice(player0, commitment0, RockPaperScissors.Choice.Rock), CommitChoice(player1, commitment1, RockPaperScissors.Choice.Rock));
+        assertPlayersEqual(rps, RockPaperScissors.CommitChoice(player0, commitment0, RockPaperScissors.Choice.Rock, false), RockPaperScissors.CommitChoice(player1, commitment1, RockPaperScissors.Choice.Rock, true));
     }
 
     function testWinningsAreDistributedWhenOnePlayer1CannotReceive() public {
@@ -92,11 +89,10 @@ contract Test_RockPaperScissors_DistributeExtendedMore {
         //distribute
         player0.distribute();
 
-        // // payer 1 should have funds, player 0 should not as we cant send money to an execution proxy - the fallback has been overridden with storage
+        // payer 1 should have funds, player 0 should not as we cant send money to an execution proxy - the fallback has been overridden with storage
         Assert.equal(address(player0).balance, commitAmount, "Player 0 did not receive correct amount.");
         Assert.equal(address(player1).balance, 0, "Player 1 should not receive any amount.");
-        Assert.equal(uint(rps.distributedWinnings()), uint(0x60), "Winning should only be distributed to player 0.");
-        assertPlayersEqual(rps, CommitChoice(player0, commitment0, RockPaperScissors.Choice.Rock), CommitChoice(player1, commitment1, RockPaperScissors.Choice.Rock));
+        assertPlayersEqual(rps, RockPaperScissors.CommitChoice(player0, commitment0, RockPaperScissors.Choice.Rock, true), RockPaperScissors.CommitChoice(player1, commitment1, RockPaperScissors.Choice.Rock, false));
     }
 
     //TODO: maybe also consider checking that player 1 had nothing untoward occur to them

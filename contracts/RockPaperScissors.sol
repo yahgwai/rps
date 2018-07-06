@@ -1,10 +1,6 @@
 pragma solidity ^0.4.24;
 
 contract RockPaperScissors {
-    uint8 private constant rock = 0x01;
-    uint8 private constant paper = 0x02;
-    uint8 private constant scissors = 0x03;
-    
     enum Choice {
         None,
         Rock,
@@ -15,31 +11,9 @@ contract RockPaperScissors {
     struct CommitChoice {
         address playerAddress;
         bytes32 commitment;
-        Choice choice;        
+        Choice choice;
+        bool receivedWinnings;        
     }
-
-    //TODO: decide whether to keep burn deposits in the state.
-    // payout[0] - burn player 0 deposit
-    // payout[1] - pay player 0 deposit
-    // payout[2] - pay player 0 back their bet
-    // payout[3] - pay player 0 the bet by player 1
-    // payout[4] - burn player 1 deposit
-    // payout[5] - pay player 1 deposit
-    // payout[6] - pay player 1 back their bet
-    // payout[7] - pay player 1 the bet by player 0
-
-    // draw             01100110    0x66
-    // p0win            01110100    0x74
-    // p1win            01000111    0x47
-    // p0winp1forfeit   01111000    0x78
-    // p1winp0forfeit   10000111    0x87
-
-    uint8[4][4] winMatrix = [
-        [ 0x66, 0x78, 0x78, 0x78 ],
-        [ 0x87, 0x66, 0x74, 0x47 ],
-        [ 0x87, 0x47, 0x66, 0x74 ],
-        [ 0x87, 0x74, 0x47, 0x66 ]
-    ];
 
     //initialisation args
     uint256 public bet;
@@ -49,7 +23,6 @@ contract RockPaperScissors {
     // state vars
     CommitChoice[2] public players;
     uint256 public revealDeadline;
-    uint8 public distributedWinnings;
 
     constructor(uint256 _bet, uint256 _deposit, uint256 _revealSpan) public {
         bet = _bet;
@@ -72,7 +45,7 @@ contract RockPaperScissors {
         uint8 playerIndex = players[0].commitment == bytes32(0x0) ? 0 : 1;
         
         // store the commitment, and the record of the commitment        
-        players[playerIndex] = CommitChoice(msg.sender, commitment, Choice.None);
+        players[playerIndex] = CommitChoice(msg.sender, commitment, Choice.None, false);
     }
     
     function reveal(Choice choice, bytes32 blindingFactor) public {
@@ -105,46 +78,76 @@ contract RockPaperScissors {
     function distribute() public {
         // to distribute we need:
         // a) to be past the deadline OR b) both players have revealed
-        require(revealDeadline <= block.number || (players[0].choice != Choice.None && players[1].choice != Choice.None));        
-
-        // find the payout
-        uint8 payout = winMatrix[uint(players[1].choice)][uint(players[0].choice)];
-
-        // remove any existing payouts
-        uint8 remainingPayout = payout ^ distributedWinnings;
+        require(revealDeadline <= block.number || (players[0].choice != Choice.None && players[1].choice != Choice.None));
 
         // calulate value of payouts for players
         //TODO: possible overflow
-        uint256 player0Payout = getBit(remainingPayout, 1) * deposit + getBit(remainingPayout, 2) * bet + getBit(remainingPayout, 3) * bet;
-        uint256 player1Payout = getBit(remainingPayout, 5) * deposit + getBit(remainingPayout, 6) * bet + getBit(remainingPayout, 7) * bet;
+        uint256 player0Payout;
+        uint256 player1Payout;
+        uint256 winningAmount = deposit + 2 * bet;
+
+        // we always draw with the same choices, and we dont lose our deposit even if neither revealed
+        if(players[0].choice == players[1].choice) {
+            player0Payout = deposit + bet;
+            player1Payout = deposit + bet;
+        }
+        // at least one person has made a choice, otherwise we wouldn't be here
+        // in that situation the person who made the choice wins, and the person
+        // who did not will lose their deposit
+        else if(players[0].choice == Choice.None) {
+            player1Payout = winningAmount;
+        }
+        else if(players[1].choice == Choice.None) {
+            player0Payout = winningAmount;
+        }
+        // both players have made a choice, and they did not draw
+        else if(players[0].choice == Choice.Rock) {
+            if(players[1].choice == Choice.Paper) {
+                // rock looses to paper
+                player0Payout = deposit;
+                player1Payout = winningAmount;
+            }
+            else {
+                // player 1 must have scissors, which loose to rock
+                player0Payout = winningAmount;
+                player1Payout = deposit;
+            }
+        }
+        else if(players[0].choice == Choice.Paper) {
+            if(players[1].choice == Choice.Rock) {
+                //rock looses to paper
+                player0Payout = winningAmount;
+                player1Payout = deposit;
+            }
+            else {
+                // player 1 must have scissors, which beats rock
+                player0Payout = deposit;
+                player1Payout = winningAmount;
+            }
+        }
+        else {
+            // player 0 must have a scissors
+            if(players[1].choice == Choice.Rock) {
+                //rock beats scissors
+                player0Payout = deposit;
+                player1Payout = winningAmount;
+            }
+            else {
+                // player 1 must have paper, which beats rock
+                player0Payout = winningAmount;
+                player1Payout = deposit;
+            }
+        }
 
         // send the payouts
-        bool player0Success = players[0].playerAddress.send(player0Payout);
-        bool player1Success = players[1].playerAddress.send(player1Payout);
-
-        // mask the player0 payouts and add them to any existing records
-        if(player0Success == true) {
+        if(!players[0].receivedWinnings && players[0].playerAddress.send(player0Payout)){
             emit Payout(players[0].playerAddress, player0Payout);
-            distributedWinnings = distributedWinnings | (payout & 0xF0);
+            players[0].receivedWinnings = true;
         }
-        if(player1Success == true) {
+        if(!players[1].receivedWinnings && players[1].playerAddress.send(player1Payout)){
             emit Payout(players[1].playerAddress, player1Payout);
-            distributedWinnings = distributedWinnings | (payout & 0x0F);
+            players[1].receivedWinnings = true;
         }
-
-        // if we have distributed the full payout, then lets zero the state
-        if((remainingPayout ^ distributedWinnings) == 0) {
-            revealDeadline = 0;
-            distributedWinnings = 0;
-            delete players;
-        }
-    }
-
-    function getBit(uint8 bits, uint8 index) pure private returns(uint8) {
-        // TODO: fudges
-        //return (bits & 2 ** index) / (2  ** index);
-        return uint8(bits >> (7 - index) & 1);
-        //return (uint8((bits << index) & uint8(128))) / 128;
     }
 }
 
