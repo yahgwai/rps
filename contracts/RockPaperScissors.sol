@@ -9,8 +9,10 @@ contract RockPaperScissors {
     }
 
     enum Stage {
-        Commit,
-        Reveal,
+        FirstCommit,
+        SecondCommit,
+        FirstReveal,
+        SecondReveal,
         Distribute
     }
 
@@ -29,8 +31,8 @@ contract RockPaperScissors {
     // state vars
     CommitChoice[2] public players;
     uint public revealDeadline;
-    Stage public stage = Stage.Commit;
-    uint public commitPlayer = 0;
+    bool deadlineSet;
+    Stage public stage = Stage.FirstCommit;
 
     constructor(uint _bet, uint _deposit, uint _revealSpan) public {
         bet = _bet;
@@ -40,8 +42,12 @@ contract RockPaperScissors {
 
     // TODO: go through and write explicit 'stored' and 'memory' everywhere
     function commit(bytes32 commitment) payable public {
-        // must be on correct stage, cannot allow commits if two
-        require(stage == Stage.Commit);
+        // only allow commit stages
+        uint playerIndex;
+        if(stage == Stage.FirstCommit) playerIndex = 0;
+        else if(stage == Stage.SecondCommit) playerIndex = 1;
+        else revert();
+
         //TODO: possible overflow
         uint commitAmount = bet + deposit;
         require(msg.value >= commitAmount);
@@ -50,17 +56,16 @@ contract RockPaperScissors {
         if(msg.value > commitAmount) msg.sender.transfer(msg.value - commitAmount);
         
         // store the commitment
-        players[commitPlayer] = CommitChoice(msg.sender, commitment, Choice.None, false);
+        players[playerIndex] = CommitChoice(msg.sender, commitment, Choice.None, false);
 
-        // move on to the next player
-        commitPlayer = commitPlayer + 1;
-
-        // if commitPlayer == 2 then we've had two commits, lets move on to the reveal stage
-        if(commitPlayer == 2) stage = Stage.Reveal;
+        // if we're on the first commit, then move to the second
+        if(stage == Stage.FirstCommit) stage = Stage.SecondCommit;
+        // otherwise we must already be on the second, move to first reveal
+        else stage = Stage.FirstReveal;
     }
     
     function reveal(Choice choice, bytes32 blindingFactor) public {
-        require(stage == Stage.Reveal);
+        require(stage == Stage.FirstReveal || stage == Stage.SecondReveal);
         // only valid choices
         require(choice == Choice.Rock || choice == Choice.Paper || choice == Choice.Scissors);
         
@@ -80,20 +85,24 @@ contract RockPaperScissors {
         
         // update if correct
         commitChoice.choice = choice;
-        // if this is the first reveal we set the deadline for the second one
-        // TODO: possible overflow
-        if(revealDeadline == 0) revealDeadline = block.number + revealSpan;
-        
-        // have both players made a choice? if so, move on to distribute stage
-        if(players[0].choice != Choice.None && players[1].choice != Choice.None) stage = Stage.Distribute;
+
+        if(stage == Stage.FirstReveal) { 
+            // TODO: possible overflow
+            // if this is the first reveal we set the deadline for the second one 
+            revealDeadline = block.number + revealSpan; 
+            // if we're on first reveal, move to the second
+            stage = Stage.SecondReveal;
+        }
+        // if we're on second reveal, move to distribute
+        else stage = Stage.Distribute;
     }
 
     event Payout(address player, uint amount);
 
     function distribute() public {
         // to distribute we need:
-        // a) to be in the distribute stage OR b) still in the reveal stage but past the deadline
-        require(stage == Stage.Distribute || (stage == Stage.Reveal && revealDeadline <= block.number));
+        // a) to be in the distribute stage OR b) still in the second reveal stage but past the deadline
+        require(stage == Stage.Distribute || (stage == Stage.SecondReveal && revealDeadline <= block.number));
 
         // calulate value of payouts for players
         //TODO: possible overflow
@@ -172,8 +181,7 @@ contract RockPaperScissors {
             // both players have received winnings, reset the state to play again
             delete players;
             revealDeadline = 0;
-            commitPlayer = 0;
-            stage = Stage.Commit;
+            stage = Stage.FirstCommit;
         }
     }
 }

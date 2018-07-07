@@ -100,8 +100,7 @@ contract Test_RockPaperScissors_DistributeExtended {
     function assertStateEmptied(RockPaperScissors rps) private {
         // if all received the correct balance the contract should have been reset.
         Assert.equal(rps.revealDeadline(), 0, "Reveal deadline not reset to 0");
-        Assert.equal(uint(rps.stage()), uint(RockPaperScissors.Stage.Commit), "Stage not reset to 'commit'.");
-        Assert.equal(rps.commitPlayer(), 0, "Commit player not reset to 0.");
+        Assert.equal(uint(rps.stage()), uint(RockPaperScissors.Stage.FirstCommit), "Stage not reset to first commit.");
         assertPlayersEmpty(rps);
     }
     
@@ -178,22 +177,23 @@ contract Test_RockPaperScissors_DistributeExtended {
         assertPlayersEqual(rps, RockPaperScissors.CommitChoice(player0, commitment0, RockPaperScissors.Choice.None, false), RockPaperScissors.CommitChoice(player1, commitment1, RockPaperScissors.Choice.Paper, false));
     }
 
-    function testDistributeSendBackMoneyIfNoReveals() public {
-        //TODO: we shouldnt have this pattern - reveal should not work and we should add the second user to the commit
-        RockPaperScissors rps = new RockPaperScissors(betAmount, depositAmount, 0);
-        RpsProxy player0 = new RpsProxy(rps);
-        RpsProxy player1 = new RpsProxy(rps);
+    // TODO: update this test - it was the old 'allow' distribute
+    // function testDistributeSendBackMoneyIfNoReveals() public {
+    //     //TODO: we shouldnt have this pattern - reveal should not work and we should add the second user to the commit
+    //     RockPaperScissors rps = new RockPaperScissors(betAmount, depositAmount, 0);
+    //     RpsProxy player0 = new RpsProxy(rps);
+    //     RpsProxy player1 = new RpsProxy(rps);
 
-        //commit
-        player0.commit.value(commitAmount)(keccak256(abi.encodePacked(player0, RockPaperScissors.Choice.Rock, rand1)));
-        player1.commit.value(commitAmount)(keccak256(abi.encodePacked(player1, RockPaperScissors.Choice.Paper, rand2)));
+    //     //commit
+    //     player0.commit.value(commitAmount)(keccak256(abi.encodePacked(player0, RockPaperScissors.Choice.Rock, rand1)));
+    //     player1.commit.value(commitAmount)(keccak256(abi.encodePacked(player1, RockPaperScissors.Choice.Paper, rand2)));
         
-        //distribute
-        player0.distribute();
+    //     //distribute
+    //     player0.distribute();
 
-        // check the balance of player 0 and player 1
-        Assert.equal(address(player0).balance, commitAmount, "Player 0 did not draw.");
-        Assert.equal(address(player1).balance, commitAmount, "Player 1 did not draw.");
-        assertStateEmptied(rps);
-    }
+    //     // check the balance of player 0 and player 1
+    //     Assert.equal(address(player0).balance, 0, "Player 0 received money back from distribute before reveal.");
+    //     Assert.equal(address(player1).balance, 0, "Player 1 received money back from distribute before reveal.");
+    //     //assertStateEmptied(rps);
+    // }
 }

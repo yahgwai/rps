@@ -75,8 +75,7 @@ contract Test_RockPaperScissors_Distribute {
     function assertStateEmptied(RockPaperScissors rps) private {
         // if all received the correct balance the contract should have been reset.
         Assert.equal(rps.revealDeadline(), 0, "Reveal deadline not reset to 0");
-        Assert.equal(uint(rps.stage()), uint(RockPaperScissors.Stage.Commit), "Stage not reset to 'commit'.");
-        Assert.equal(rps.commitPlayer(), 0, "Commit player not reset to 0.");
+        Assert.equal(uint(rps.stage()), uint(RockPaperScissors.Stage.FirstCommit), "Stage not reset to first commit.");
         assertPlayersEmpty(rps);
     }
 
