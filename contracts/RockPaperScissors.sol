@@ -49,7 +49,7 @@ contract RockPaperScissors {
         // return any excess
         if(msg.value > commitAmount) msg.sender.transfer(msg.value - commitAmount);
         
-        // store the commitment, and the record of the commitment        
+        // store the commitment
         players[commitPlayer] = CommitChoice(msg.sender, commitment, Choice.None, false);
 
         // move on to the next player
