@@ -48,9 +48,6 @@ contract RockPaperScissors {
         
         // return any excess
         if(msg.value > commitAmount) msg.sender.transfer(msg.value - commitAmount);
-
-        // choose the player, if player 0 has not commited then we're on player 0, otherwise we're on
-        //uint8 playerIndex = players[0].commitment == bytes32(0x0) ? 0 : 1;
         
         // store the commitment, and the record of the commitment        
         players[commitPlayer] = CommitChoice(msg.sender, commitment, Choice.None, false);

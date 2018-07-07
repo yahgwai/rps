@@ -15,7 +15,9 @@ contract Test_RockPaperScissors_Commit {
     
     uint256 revealSpan = 10;
 
-    // TODO: test greater deposit amounts
+    // TODO: test greater \deposit amounts
+
+    // TODO: test that explicit stages are respected
 
     bytes32 rand1 = "abc";
     bytes32 rand2 = "123";
