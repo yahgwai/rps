@@ -93,7 +93,7 @@ let commitHandler = async () => {
     // make the commitment
     let transactionReceipt = await rps.methods
         .commit(commitment)
-        .send({ from: player, value: BET_AMOUNT + DEPOSIT_AMOUNT });
+        .send({ from: player, value: BET_AMOUNT + DEPOSIT_AMOUNT, gas: 200000 });
     console.log("Commitment mined in transaction: ", transactionReceipt);
 
     // wipe the selections
