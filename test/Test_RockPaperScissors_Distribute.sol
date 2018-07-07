@@ -3,6 +3,7 @@ pragma solidity ^0.4.2;
 import "truffle/Assert.sol";
 import "truffle/DeployedAddresses.sol";
 import "../contracts/RockPaperScissors.sol";
+import "./ExecutionProxy.sol";
 import "./RpsProxy.sol";
 
 contract Test_RockPaperScissors_Distribute {
@@ -73,9 +74,9 @@ contract Test_RockPaperScissors_Distribute {
 
     function assertStateEmptied(RockPaperScissors rps) private {
         // if all received the correct balance the contract should have been reset.
-        // TODOL check reveal not seset
-        //Assert.equal(rps.revealDeadline(), 0, "Reveal deadline not reset to 0");
-        // TODO: check received winnings!s'
+        Assert.equal(rps.revealDeadline(), 0, "Reveal deadline not reset to 0");
+        Assert.equal(uint(rps.stage()), uint(RockPaperScissors.Stage.Commit), "Stage not reset to 'commit'.");
+        Assert.equal(rps.commitPlayer(), 0, "Commit player not reset to 0.");
         assertPlayersEmpty(rps);
     }
 
@@ -89,8 +90,7 @@ contract Test_RockPaperScissors_Distribute {
         //check the balance of player 0 and player 1
         Assert.equal(address(player0).balance, depositAmount + (2 * betAmount), "Player 0 did not receive winnings + deposit.");
         Assert.equal(address(player1).balance, depositAmount, "Player 1 did not only receive back deposit.");
-        // TODO: check satet is the same not empty
-        // assertStateEmptied(rps);
+        assertStateEmptied(rps);
     }
 
     function testDistributePaperBeatsRockPlayer1() public {
@@ -102,8 +102,7 @@ contract Test_RockPaperScissors_Distribute {
         //check the balance of player 0 and player 1
         Assert.equal(address(player1).balance, depositAmount + (2 * betAmount), "Player 1 did not receive winnings + deposit.");
         Assert.equal(address(player0).balance, depositAmount, "Player 0 did not only receive back deposit.");
-        // TODO: check satet is the same not empty
-        // assertStateEmptied(rps);
+        assertStateEmptied(rps);
     }
 
     // scissors vs paper
@@ -116,8 +115,7 @@ contract Test_RockPaperScissors_Distribute {
         //check the balance of player 0 and player 1
         Assert.equal(address(player0).balance, depositAmount + (2 * betAmount), "Player 0 did not receive winnings + deposit.");
         Assert.equal(address(player1).balance, depositAmount, "Player 1 did not only receive back deposit.");
-        // TODO: check satet is the same not empty
-        // assertStateEmptied(rps);
+        assertStateEmptied(rps);
     }
 
     function testDistributeScissorsBeatsPaperPlayer1() public {
@@ -129,8 +127,7 @@ contract Test_RockPaperScissors_Distribute {
         //check the balance of player 0 and player 1
         Assert.equal(address(player1).balance, depositAmount + (2 * betAmount), "Player 0 did not receive winnings + deposit.");
         Assert.equal(address(player0).balance, depositAmount, "Player 1 did not only receive back deposit.");
-        // TODO: check satet is the same not empty
-        // assertStateEmptied(rps);
+        assertStateEmptied(rps);
     }
 
     // rock vs scissors
@@ -143,8 +140,7 @@ contract Test_RockPaperScissors_Distribute {
         //check the balance of player 0 and player 1
         Assert.equal(address(player0).balance, depositAmount + (2 * betAmount), "Player 0 did not receive winnings + deposit.");
         Assert.equal(address(player1).balance, depositAmount, "Player 1 did not only receive back deposit.");
-        // TODO: check satet is the same not empty
-        // assertStateEmptied(rps);
+        assertStateEmptied(rps);
     }
 
     function testDistributeRockBeatsScissorsPlayer1() public {
@@ -156,8 +152,7 @@ contract Test_RockPaperScissors_Distribute {
         //check the balance of player 0 and player 1
         Assert.equal(address(player1).balance, depositAmount + (2 * betAmount), "Player 0 did not receive winnings + deposit.");
         Assert.equal(address(player0).balance, depositAmount, "Player 1 did not only receive back deposit.");
-        // TODO: check satet is the same not empty
-        // assertStateEmptied(rps);
+        assertStateEmptied(rps);
     }
 
     // draws
@@ -170,8 +165,7 @@ contract Test_RockPaperScissors_Distribute {
         //check the balance of player 0 and player 1
         Assert.equal(address(player1).balance, commitAmount, "Player 0 did not receive back commit amount.");
         Assert.equal(address(player0).balance, commitAmount, "Player 1 did not receive back commit amount.");
-        // TODO: check satet is the same not empty
-        // assertStateEmptied(rps);
+        assertStateEmptied(rps);
     }
 
     function testDistributePaperDrawsWithPaper() public {
@@ -183,8 +177,7 @@ contract Test_RockPaperScissors_Distribute {
         //check the balance of player 0 and player 1
         Assert.equal(address(player1).balance, commitAmount, "Player 0 did not receive back commit amount.");
         Assert.equal(address(player0).balance, commitAmount, "Player 1 did not receive back commit amount.");
-        // TODO: check satet is the same not empty
-        // assertStateEmptied(rps);
+        assertStateEmptied(rps);
     }
 
     function testDistributeScissorsDrawsWithScissors() public {
@@ -196,27 +189,29 @@ contract Test_RockPaperScissors_Distribute {
         //check the balance of player 0 and player 1
         Assert.equal(address(player1).balance, commitAmount, "Player 0 did not receive back commit amount.");
         Assert.equal(address(player0).balance, commitAmount, "Player 1 did not receive back commit amount.");
-        // TODO: check satet is the same not empty
-        // assertStateEmptied(rps);
+        assertStateEmptied(rps);
     }
+
+    // TODO: test that anyone can call distribute
 
     function testDistributeMultipleCallsAreExceptedButDoNothing() public {
         RockPaperScissors rps = new RockPaperScissors(betAmount, depositAmount, revealSpan);
         RpsProxy player0 = new RpsProxy(rps);
         RpsProxy player1 = new RpsProxy(rps);
+        ExecutionProxy player2 = new ExecutionProxy(rps);
         commitRevealAndDistribute(player0, player1, RockPaperScissors.Choice.Scissors, RockPaperScissors.Choice.Scissors, rand1, rand2);
 
         //check the balance of player 0 and player 1
         Assert.equal(address(player1).balance, commitAmount, "Player 0 did not receive back commit amount.");
         Assert.equal(address(player0).balance, commitAmount, "Player 1 did not receive back commit amount.");
-        // TODO: check satet is the same not empty
-        // assertStateEmptied(rps);
+        assertStateEmptied(rps);
 
-        rps.distribute();
+        RockPaperScissors(player2).distribute();
+        bool result = player2.execute();
 
+        Assert.isFalse(result, "Additional calls to a successfull distribute should have failed.");
         Assert.equal(address(player1).balance, commitAmount, "Player 0 did not still have commit amount after second distribute.");
         Assert.equal(address(player0).balance, commitAmount, "Player 1 did not still have commit amount after second distribute.");
-        // TODO: check satet is the same not empty
-        // assertStateEmptied(rps);
+        assertStateEmptied(rps);
     }
 }

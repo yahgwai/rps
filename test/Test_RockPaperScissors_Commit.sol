@@ -18,6 +18,7 @@ contract Test_RockPaperScissors_Commit {
     // TODO: test greater \deposit amounts
 
     // TODO: test that explicit stages are respected
+    // test that only two commits are allowed
 
     bytes32 rand1 = "abc";
     bytes32 rand2 = "123";
@@ -41,17 +42,13 @@ contract Test_RockPaperScissors_Commit {
 
     function testCommitIncreasesBalanceOnlyByBetAmount() public {
         RockPaperScissors rps = new RockPaperScissors(betAmount, depositAmount, revealSpan);
-        // we need the rps proxy as the execution proxy already implements the 
-        // fallback function with storage. Storage would cost too much gas than
-        // that supplied in transfer so we would error here with that fallback.
         RpsProxy proxy = new RpsProxy(rps);
         uint256 balanceBefore = address(rps).balance;
-        proxy.commit.value(commitAmount)(commitmentRock(proxy));
+        proxy.commit.value(commitAmountGreater)(commitmentRock(proxy));
         uint256 balanceAfter = address(rps).balance;
 
         Assert.equal(balanceAfter - balanceBefore, commitAmount, "Balance not increased by commit amount when greater commit supplied.");
-        // TODO: why does the line below send back to 'this'?
-        //Assert.equal(address(proxy).balance, commitAmountGreater - commitAmount, "Sender account did not receive excess.");
+        Assert.equal(address(proxy).balance, commitAmountGreater - commitAmount, "Sender account did not receive excess.");
     }
 
     function testCommitReturnsAllWhenCallingFallbackErrors() public {

@@ -29,8 +29,8 @@ contract RockPaperScissors {
     // state vars
     CommitChoice[2] public players;
     uint256 public revealDeadline;
-    Stage stage = Stage.Commit;
-    uint commitPlayer = 0;
+    Stage public stage = Stage.Commit;
+    uint256 public commitPlayer = 0;
 
     constructor(uint256 _bet, uint256 _deposit, uint256 _revealSpan) public {
         bet = _bet;
@@ -92,8 +92,8 @@ contract RockPaperScissors {
 
     function distribute() public {
         // to distribute we need:
-        // a) to be in the distribute stage OR b) to be past the deadline
-        require(stage == Stage.Distribute || revealDeadline <= block.number);
+        // a) to be in the distribute stage OR b) still in the reveal stage but past the deadline
+        require(stage == Stage.Distribute || (stage == Stage.Reveal && revealDeadline <= block.number));
 
         // calulate value of payouts for players
         //TODO: possible overflow
