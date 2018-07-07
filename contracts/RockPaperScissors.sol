@@ -22,17 +22,17 @@ contract RockPaperScissors {
     }
 
     //initialisation args
-    uint256 public bet;
-    uint256 public deposit;
-    uint256 public revealSpan;
+    uint public bet;
+    uint public deposit;
+    uint public revealSpan;
 
     // state vars
     CommitChoice[2] public players;
-    uint256 public revealDeadline;
+    uint public revealDeadline;
     Stage public stage = Stage.Commit;
-    uint256 public commitPlayer = 0;
+    uint public commitPlayer = 0;
 
-    constructor(uint256 _bet, uint256 _deposit, uint256 _revealSpan) public {
+    constructor(uint _bet, uint _deposit, uint _revealSpan) public {
         bet = _bet;
         deposit = _deposit;
         revealSpan = _revealSpan;
@@ -43,7 +43,7 @@ contract RockPaperScissors {
         // must be on correct stage, cannot allow commits if two
         require(stage == Stage.Commit);
         //TODO: possible overflow
-        uint256 commitAmount = bet + deposit;
+        uint commitAmount = bet + deposit;
         require(msg.value >= commitAmount);
         
         // return any excess
@@ -65,8 +65,8 @@ contract RockPaperScissors {
         require(choice == Choice.Rock || choice == Choice.Paper || choice == Choice.Scissors);
         
         // find the player index
-        uint8 playerIndex;
-        if(players[0].playerAddress == msg.sender) playerIndex = 0;
+        uint playerIndex;
+        if(players[playerIndex = 0].playerAddress == msg.sender) playerIndex = 0;
         else if (players[1].playerAddress == msg.sender) playerIndex = 1;
         // unknown player
         else revert();
@@ -88,7 +88,7 @@ contract RockPaperScissors {
         if(players[0].choice != Choice.None && players[1].choice != Choice.None) stage = Stage.Distribute;
     }
 
-    event Payout(address player, uint256 amount);
+    event Payout(address player, uint amount);
 
     function distribute() public {
         // to distribute we need:
@@ -97,9 +97,9 @@ contract RockPaperScissors {
 
         // calulate value of payouts for players
         //TODO: possible overflow
-        uint256 player0Payout;
-        uint256 player1Payout;
-        uint256 winningAmount = deposit + 2 * bet;
+        uint player0Payout;
+        uint player1Payout;
+        uint winningAmount = deposit + 2 * bet;
 
         // we always draw with the same choices, and we dont lose our deposit even if neither revealed
         if(players[0].choice == players[1].choice) {
