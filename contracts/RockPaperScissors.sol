@@ -97,8 +97,6 @@ contract RockPaperScissors {
 
     event Payout(address player, uint amount);
 
-    function testCallStack() pure external {}
-
     function distribute() public {
         // to distribute we need:
         // a) to be in the distribute stage OR b) still in the second reveal stage but past the deadline
