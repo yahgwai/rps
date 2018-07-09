@@ -21,6 +21,9 @@ contract RockPaperScissors {
         bytes32 commitment;
         Choice choice;
     }
+    
+    // events
+    event Payout(address player, uint amount);
 
     //initialisation args
     uint public bet;
@@ -94,8 +97,6 @@ contract RockPaperScissors {
         // if we're on second reveal, move to distribute
         else stage = Stage.Distribute;
     }
-
-    event Payout(address player, uint amount);
 
     function distribute() public {
         // to distribute we need:
