@@ -20,7 +20,6 @@ contract RockPaperScissors {
         address playerAddress;
         bytes32 commitment;
         Choice choice;
-        bool receivedWinnings;        
     }
 
     //initialisation args
@@ -31,7 +30,6 @@ contract RockPaperScissors {
     // state vars
     CommitChoice[2] public players;
     uint public revealDeadline;
-    bool deadlineSet;
     Stage public stage = Stage.FirstCommit;
 
     constructor(uint _bet, uint _deposit, uint _revealSpan) public {
@@ -56,7 +54,7 @@ contract RockPaperScissors {
         if(msg.value > commitAmount) msg.sender.transfer(msg.value - commitAmount);
         
         // store the commitment
-        players[playerIndex] = CommitChoice(msg.sender, commitment, Choice.None, false);
+        players[playerIndex] = CommitChoice(msg.sender, commitment, Choice.None);
 
         // if we're on the first commit, then move to the second
         if(stage == Stage.FirstCommit) stage = Stage.SecondCommit;
@@ -80,7 +78,7 @@ contract RockPaperScissors {
         CommitChoice storage commitChoice = players[playerIndex]; 
 
         // check the hash, we have a hash of sender, choice, blind so that players cannot learn anything from a committment
-        // if it were just choice, blind the other player could view this an submit ti themselves to reliably achieve a draw
+        // if it were just choice, blind the other player could view this and submit it themselves to reliably achieve a draw
         require(keccak256(abi.encodePacked(msg.sender, choice, blindingFactor)) == commitChoice.commitment);
         
         // update if correct
@@ -98,6 +96,8 @@ contract RockPaperScissors {
     }
 
     event Payout(address player, uint amount);
+
+    function testCallStack() pure external {}
 
     function distribute() public {
         // to distribute we need:
@@ -168,21 +168,17 @@ contract RockPaperScissors {
         else revert();
 
         // send the payouts
-        if(!players[0].receivedWinnings && players[0].playerAddress.send(player0Payout)){
-            players[0].receivedWinnings = true;
+        if(player0Payout != 0 && players[0].playerAddress.send(player0Payout)){
             emit Payout(players[0].playerAddress, player0Payout);            
         }
-        if(!players[1].receivedWinnings && players[1].playerAddress.send(player1Payout)){
-            players[1].receivedWinnings = true;
+        if(player1Payout != 0 && players[1].playerAddress.send(player1Payout)){
             emit Payout(players[1].playerAddress, player1Payout);            
         }
 
-        if(players[0].receivedWinnings && players[1].receivedWinnings) {
-            // both players have received winnings, reset the state to play again
-            delete players;
-            revealDeadline = 0;
-            stage = Stage.FirstCommit;
-        }
+        //reset the state to play again
+        delete players;
+        revealDeadline = 0;
+        stage = Stage.FirstCommit;
     }
 }
 

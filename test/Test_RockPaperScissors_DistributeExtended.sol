@@ -71,29 +71,25 @@ contract Test_RockPaperScissors_DistributeExtended {
         address playerAddress0;
         bytes32 commitment0;
         RockPaperScissors.Choice choice0;
-        bool receivedWinnings0;
-        (playerAddress0, commitment0, choice0, receivedWinnings0) = rps.players(0);
+        (playerAddress0, commitment0, choice0) = rps.players(0);
 
         address playerAddress1;
         bytes32 commitment1;
         RockPaperScissors.Choice choice1;
-        bool receivedWinnings1;
-        (playerAddress1, commitment1, choice1, receivedWinnings1) = rps.players(1);
+        (playerAddress1, commitment1, choice1) = rps.players(1);
 
         Assert.equal(playerAddress0, player0.playerAddress, "Player 0 address does not equal supplied one.");
         Assert.equal(uint(choice0), uint(player0.choice), "Player 0 choice does not equal supplied one.");
         Assert.equal(commitment0, player0.commitment, "Player 0 commitment does not equal supplied one.");
-        Assert.equal(receivedWinnings0, player0.receivedWinnings, "Player 0 received winnings does not equal supplied one.");
 
         Assert.equal(playerAddress1, player1.playerAddress, "Player 1 address does not equal supplied one.");
         Assert.equal(uint(choice1), uint(player1.choice), "Player 1 choice does not equal supplied one.");
         Assert.equal(commitment1, player1.commitment, "Player 1 commitment does not equal supplied one.");
-        Assert.equal(receivedWinnings1, player1.receivedWinnings, "Player 1 received winnings does not equal supplied one.");
     }
 
     function assertPlayersEmpty(RockPaperScissors rps) private {
-        RockPaperScissors.CommitChoice memory player0 = RockPaperScissors.CommitChoice(0, 0, RockPaperScissors.Choice.None, false);
-        RockPaperScissors.CommitChoice memory  player1 = RockPaperScissors.CommitChoice(0, 0, RockPaperScissors.Choice.None, false);
+        RockPaperScissors.CommitChoice memory player0 = RockPaperScissors.CommitChoice(0, 0, RockPaperScissors.Choice.None);
+        RockPaperScissors.CommitChoice memory  player1 = RockPaperScissors.CommitChoice(0, 0, RockPaperScissors.Choice.None);
         assertPlayersEqual(rps, player0, player1);
     }
 
@@ -150,7 +146,7 @@ contract Test_RockPaperScissors_DistributeExtended {
 
         // TODO: check the balance of player 0 and player 1
         Assert.isFalse(result, "Distribute succeeded before deadline.");        
-        assertPlayersEqual(rps, RockPaperScissors.CommitChoice(player0, commitment0, RockPaperScissors.Choice.Rock, false), RockPaperScissors.CommitChoice(player1, commitment1, RockPaperScissors.Choice.None, false));
+        assertPlayersEqual(rps, RockPaperScissors.CommitChoice(player0, commitment0, RockPaperScissors.Choice.Rock), RockPaperScissors.CommitChoice(player1, commitment1, RockPaperScissors.Choice.None));
     }
 
     function testDistributeOnlyPlayer1ChoiceRevealedNoOneWinsBeforeDeadline() public {
@@ -174,7 +170,7 @@ contract Test_RockPaperScissors_DistributeExtended {
 
         // check the balance of player 0 and player 1
         Assert.isFalse(result, "Distribute succeeded before deadline.");        
-        assertPlayersEqual(rps, RockPaperScissors.CommitChoice(player0, commitment0, RockPaperScissors.Choice.None, false), RockPaperScissors.CommitChoice(player1, commitment1, RockPaperScissors.Choice.Paper, false));
+        assertPlayersEqual(rps, RockPaperScissors.CommitChoice(player0, commitment0, RockPaperScissors.Choice.None), RockPaperScissors.CommitChoice(player1, commitment1, RockPaperScissors.Choice.Paper));
     }
 
     // TODO: update this test - it was the old 'allow' distribute
