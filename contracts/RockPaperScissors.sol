@@ -72,7 +72,7 @@ contract RockPaperScissors {
         
         // find the player index
         uint playerIndex;
-        if(players[playerIndex = 0].playerAddress == msg.sender) playerIndex = 0;
+        if(players[0].playerAddress == msg.sender) playerIndex = 0;
         else if (players[1].playerAddress == msg.sender) playerIndex = 1;
         // unknown player
         else revert();
